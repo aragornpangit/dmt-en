@@ -36,9 +36,9 @@ Team rules and gates live in `director/team.md` (this repo; `docs/team.md` once 
 ## Outputs
 
 - Create no directory and write no `docs/`; evidence goes with the report to `inbox/ana-m/`, and ana-m consolidates it into the report.
-- Other departments' paths are **read-only**: `docs/research/` (ana-m's reports), `docs/pd/spec/`, `docs/pd/prd/`, `docs/dev/tickets/`, `docs/user/`.
+- Other departments' paths are **read-only**: `docs/analyst/` (ana-m's reports), `docs/pd/spec/`, `docs/pd/prd/`, `docs/dev/tickets/`, `docs/human/`.
 
 ## Pointers
 
-- Upstream: ana-m's dispatch (`inbox/ana-tl{n}/`); downstream artifact: the `docs/research/` report consolidated by ana-m
+- Upstream: ana-m's dispatch (`inbox/ana-tl{n}/`); downstream artifact: the `docs/analyst/` report consolidated by ana-m
 - Skills: `herdr` (pane/tab control), `research`, REA (`/rea`, `reverse-engineer-anything`), `grilling`

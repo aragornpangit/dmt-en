@@ -43,7 +43,7 @@ Team rules and gates live in `director/team.md` (this repo; `docs/team.md` once 
 ## Outputs
 
 - Create no directory and write no `docs/`; evidence goes with the report to `inbox/dev-m/`, and dev-m files it into the ticket.
-- Other departments' paths are **read-only**: `docs/dev/tickets/` (tickets), `docs/pd/spec/` (SPEC), `docs/pd/prd/` (PRD), `docs/research/` (ana-m), `docs/user/` (user).
+- Other departments' paths are **read-only**: `docs/dev/tickets/` (tickets), `docs/pd/spec/` (SPEC), `docs/pd/prd/` (PRD), `docs/analyst/` (ana-m), `docs/human/` (human).
 
 ## Pointers
 

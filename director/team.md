@@ -13,7 +13,7 @@ dmt/
 │   ├── SKILL.md                          # role skill
 │   ├── team.md                           # team contract (this file, single authority)
 │   ├── README.md                         # repo notes and installation
-│   └── scripts/check-pda-doc-paths.sh    # output-path checker
+│   └── scripts/check-dmt-doc-paths.sh    # output-path checker
 ├── dev-m/SKILL.md                        # Development manager (dev-m)
 ├── ana-m/SKILL.md                        # Analysis manager (ana-m)
 ├── dev-tl/SKILL.md                       # Development team lead (dev-tl{n})
@@ -43,7 +43,7 @@ director            Director (team lead + product manager, label director)
 
 | Role | Full name | Skill / instance | tab label | Reports to | Direct reports | Responsibility |
 |---|---|---|---|---|---|---|
-| Director (team lead + product manager) | TeamLeader + ProductManager | `director` | `director` | User | `dev-m`, `ana-m` | Single user entry point; take requirements, set acceptance criteria, write PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
+| Director (team lead + product manager) | TeamLeader + ProductManager | `director` | `director` | Human | `dev-m`, `ana-m` | Single user entry point; take requirements, set acceptance criteria, write PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
 | Development manager | DevelopManager | `dev-m` | `dev-m` | `director` | `dev-tl{n}` | Split the SPEC into tickets, spawn development team leads on demand, integrate and accept, push only after director review |
 | Analysis manager | AnalystManager | `ana-m` | `ana-m` | `director` | `ana-tl{n}` | Take research requests, spawn analysis team leads on demand, consolidate research reports |
 | Development team lead | DevelopLeader | `dev-tl{n}` | `dev-tl{n}` | `dev-m` | `dev-e` (sub-agent) | Create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to dev-m |
@@ -60,6 +60,7 @@ director            Director (team lead + product manager, label director)
 ### 1.2 Runtime and tab lifecycle
 
 - Every role runs inside **Herdr**, each occupying one tab.
+- A tab holds exactly one pane (one agent): do not open multiple panes in one tab to host multiple roles, and do not reuse a pane id across tabs.
 - Peers are identified **by tab label** (`herdr tab list`), **never by remembered pane id**: pane ids drift across restarts and moves.
 - Startup order: prepare the `director` tab from the user session (or outside it); **the director creates the `dev-m` and `ana-m` tabs** and asks the user to start each harness inside its tab.
 - **Team leads are spawned on demand, never pre-created**: `dev-m` creates `dev-tl{n}` and `ana-m` creates `ana-tl{n}` at the point of need. `{n}` increases monotonically from 1; **a closed number is never reused**.
@@ -122,11 +123,12 @@ Before sending, **read the target pane first** (`herdr pane read`). If the peer'
 
 **Step 4 — receiver handling**
 
-1. Read the new file under `inbox/<self>/` and **acknowledge immediately** to the sender: `{file} received` plus a one-line conclusion or next step (the ack travels as a herdr message, not another file).
-2. **Delete the file once read** (the inbox only holds unread messages).
-3. To reply with a body, write a file the same way in reverse and ring the doorbell; never stuff the body into the ack.
+1. On the doorbell alert (new mail in the inbox), read the new file under `inbox/<self>/` and **load it into your context window** for processing.
+2. **Do not send a receipt**: after reading, process it; do **not** send `{file} received` or any acknowledgement message.
+3. **Delete the file once read** (the inbox only holds unread messages).
+4. To reply with a body, write a file the same way in reverse and ring the doorbell; never stuff the body into the doorbell line.
 
-**Delivery proof**: the **peer's ack** is the only proof. `agent prompt` returning `{"type":"agent_prompted"}` and `send-text + send-keys` returning exit 0 count as "delivered", not "received". With no ack, **ask**; do not re-send blindly.
+**Delivery proof**: the sender treats a successful doorbell as "delivered" (`agent prompt` returns `{"type":"agent_prompted"}`, or `send-text + send-keys` returns exit 0). **The receiver sends no receipt**, so delivery is no longer proven by an ack. If the sender is unsure whether the message was read, **ask the user verbally**; do not re-send blindly.
 
 **Not versioned**: the inbox is a runtime channel, not a deliverable; a served project's `.gitignore` must contain `inbox/*/`.
 
@@ -148,16 +150,16 @@ Known gaps (checked 2026-10): upstream `mattpocock/skills` has **no `to-prd`**, 
 
 ## 2. File naming (authoritative)
 
-Sequence numbers are independent per output category and accumulate within the category (from 001): `{prd-seq}` (PRD), `{research-seq}` (research report), `{user-arch-seq}` (user architecture), `{user-plan-seq}` (user plan), `{spec-seq}` (shared by SPEC and ticket); inbox messages use a separate `{seq}` message number. `{slug}` is a short semantic name (lowercase English with hyphens, at most 5 words); `{YYMMDD-HHMM}` is date and time; `v{N}` is the version of the same file updated in place.
+Sequence numbers are independent per output category and accumulate within the category (from 001): `{prd-seq}` (PRD), `{research-seq}` (research report), `{human-arch-seq}` (human architecture), `{human-plan-seq}` (human plan), `{spec-seq}` (shared by SPEC and ticket); inbox messages use a separate `{seq}` message number. `{slug}` is a short semantic name (lowercase English with hyphens, at most 5 words); `{YYMMDD-HHMM}` is date and time; `v{N}` is the version of the same file updated in place.
 
 | Output | Directory | File name |
 |---|---|---|
-| Research report | `docs/research/` | `{research-seq}-research-{slug}-{YYMMDD-HHMM}--v{N}.md` |
+| Research report | `docs/analyst/` | `{research-seq}-research-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Product requirements (PRD) | `docs/pd/prd/` | `{prd-seq}-prd-{slug}-{YYMMDD}-v{N}.md` |
 | Specification (SPEC) | `docs/pd/spec/` | `{spec-seq}-spec-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Development ticket | `docs/dev/tickets/` | `{spec-seq}-ticket-{slug}-{YYMMDD-HHMM}--v{N}.md` |
-| User architecture | `docs/user/user-arch/` | `{user-arch-seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md` |
-| User plan | `docs/user/user-plan/` | `{user-plan-seq}-plan-{slug}-{YYMMDD-HHMM}--v{N}.md` |
+| Human architecture | `docs/human/human-arch/` | `{human-arch-seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md` |
+| Human plan | `docs/human/human-plan/` | `{human-plan-seq}-plan-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Inbox message | `inbox/<recipient>/` | `{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (no version, deleted once read) |
 
 Rules:
@@ -165,7 +167,7 @@ Rules:
 1. **SPEC and ticket must share `spec-seq`**: one requirement's SPEC and its tickets use the same `spec-seq` prefix.
 2. **Version semantics**: small in-version updates **edit the same file in place**; substantive revisions **start a new versioned file** (new timestamp, `v{N+1}`) and the old file is marked at the top with "superseded by v N+1".
 3. The PRD uses the date only (`YYMMDD`) as required by the requesting side, with no time; every other output carries time.
-4. **Independent numbering**: `{prd-seq}` / `{research-seq}` / `{user-arch-seq}` / `{user-plan-seq}` / `{spec-seq}` are independent and accumulate within their category; only SPEC and ticket share one `spec-seq`.
+4. **Independent numbering**: `{prd-seq}` / `{research-seq}` / `{human-arch-seq}` / `{human-plan-seq}` / `{spec-seq}` are independent and accumulate within their category; only SPEC and ticket share one `spec-seq`.
 5. **Team lead numbering**: `{n}` in `dev-tl{n}` / `ana-tl{n}` matches the tab label and the inbox folder (`inbox/dev-tl{n}`, `inbox/ana-tl{n}`) in all three places, increases from 1, and is never reused after close.
 6. Historical typos stay as history: the `ver{seq}` and `YYMMDD-v{seq}` forms in old requests are **void**; this table is authoritative, and existing files are not renamed.
 
@@ -178,17 +180,17 @@ Rules:
 | `docs/pd/prd/` | director | Product requirements (PRD) | `{prd-seq}` independent numbering |
 | `docs/pd/spec/` | director | Specification (SPEC, with acceptance criteria) | shares `spec-seq` with tickets |
 | `docs/dev/tickets/` | dev-m (dev-e evidence is reported via the team lead and filed by dev-m) | Development tickets | shares `spec-seq` with the SPEC |
-| `docs/research/` | ana-m | Market research and competitor reverse-engineering reports | none |
-| `docs/user/user-arch/` | director | User architecture documents | none |
-| `docs/user/user-plan/` | director | User plan documents | none |
+| `docs/analyst/` | ana-m | Market research and competitor reverse-engineering reports | none |
+| `docs/human/human-arch/` | director | Human architecture documents | none |
+| `docs/human/human-plan/` | director | Human plan documents | none |
 | `docs/team.md` | director | Team contract (this file) | none |
 | `docs/handoff/` | director / dev-m | Handoff notes (`{director,dev-m}-{slug}-{YYMMDD-HHMM}-v{N}.md`, **only when the user asks**) | none |
 | `inbox/<recipient>/` | sender writes, receiver deletes after reading | Inter-role messages (runtime channel, **not versioned**, **at the project root, not under `docs/`**) | direction and `{seq}` per §1.3 |
 
-1. These paths are the **only allowed locations**. Do not write to `docs/pd/` (except `prd/`, `spec/`), `docs/dev/` (except `tickets/`), `docs/user/` (except `user-arch/`, `user-plan/`), `docs/test/` or anywhere else; the inbox lives only under the project-root `inbox/` and never under `docs/`; do not create new document directories.
+1. These paths are the **only allowed locations**. Do not write to `docs/pd/` (except `prd/`, `spec/`), `docs/dev/` (except `tickets/`), `docs/human/` (except `human-arch/`, `human-plan/`), `docs/test/` or anywhere else; the inbox lives only under the project-root `inbox/` and never under `docs/`; do not create new document directories.
 2. Department output directories **never cross**: read-only references are fine, moving or renaming is not.
 3. **Team leads do not write `docs/`**: reports and evidence from `dev-tl{n}` / `ana-tl{n}` go to `inbox/<manager>/` only (the manager folds them into the ticket or report); everything under `docs/` is written by a manager.
-4. The old layout (`docs/pd/` except `prd/` and `spec/`, `docs/dev/` except `tickets/`, `docs/test/`) is history only and **accepts no new output**; historical files are neither renamed nor moved. **Current ruling (2026-10-21, second revision)**: (1) the PRD lives in `docs/pd/prd/`; (2) the SPEC moved from `docs/spec/` to `docs/pd/spec/`; (3) tickets moved from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/user/user-arch/` (user architecture) and `docs/user/user-plan/` (user plan) were added, both written by the director; (5) `docs/dev/arch/` is **void**, no separate architecture directory; (6) the inbox moved from `docs/<role>/inbox/` to the project-root `inbox/<role>/`.
+4. The old layout (`docs/pd/` except `prd/` and `spec/`, `docs/dev/` except `tickets/`, `docs/test/`) is history only and **accepts no new output**; historical files are neither renamed nor moved. **Current ruling (2026-10-21, second revision)**: (1) the PRD lives in `docs/pd/prd/`; (2) the SPEC moved from `docs/spec/` to `docs/pd/spec/`; (3) tickets moved from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/human/human-arch/` (human architecture) and `docs/human/human-plan/` (human plan) were added, both written by the director; (5) `docs/dev/arch/` is **void**, no separate architecture directory; (6) the inbox moved from `docs/<role>/inbox/` to the project-root `inbox/<role>/`.
 5. **The director initializes directories**: on taking over a project the director checks and fills gaps (see §3.1); ana-m / dev-m never create output directories.
 6. Checker scope: the script in §7 only verifies that the six output directories and the root `inbox/` exist, that the five skills each point at their own directory, that this contract registers every path, and that a negative sample is rejected. It **does not validate individual file paths**; the table and reviews enforce those.
 
@@ -198,19 +200,19 @@ The director's **first action** on a project is to check directories and create 
 
 ```bash
 cd <project root>
-mkdir -p docs/{pd/{prd,spec},dev/tickets,research,user/{user-arch,user-plan}} inbox/{director,dev-m,ana-m}
+mkdir -p docs/{pd/{prd,spec},dev/tickets,analyst,human/{human-arch,human-plan}} inbox/{director,dev-m,ana-m}
 grep -qxF 'inbox/*/' .gitignore 2>/dev/null || echo 'inbox/*/' >> .gitignore   # inbox is not versioned
-bash director/scripts/check-pda-doc-paths.sh .
+bash director/scripts/check-dmt-doc-paths.sh .
 ```
 
-- **Done criterion**: the checker prints `ALL_PASS`. A missing directory prints `FAIL 目录缺失`; the director creates it and reruns.
+- **Done criterion**: the checker prints `ALL_PASS`. A missing directory prints `FAIL 目录缺失` (directory missing); the director creates it and reruns.
 - **Directories only, no artifacts**: no placeholder files, so an empty directory is never mistaken for a delivered artifact.
 - **ana-m / dev-m never create output directories**: if a target directory is missing, report to the director (inbox folders are a runtime channel, `mkdir -p` is fine; `inbox/dev-tl{n}` and `inbox/ana-tl{n}` are created by the sender).
 - The contract file `docs/team.md` and skill installation are outside this step (see `README.md`).
 
 ## 4. Workflow
 
-1. **ana-m researches**: ana-m spawns `ana-tl{n}` as needed; the team lead dispatches `ana-e` to gather evidence; ana-m verifies and consolidates the research report, which lands in `docs/research/` **after director review**.
+1. **ana-m researches**: ana-m spawns `ana-tl{n}` as needed; the team lead dispatches `ana-e` to gather evidence; ana-m verifies and consolidates the research report, which lands in `docs/analyst/` **after director review**.
 2. **director writes PRD and SPEC**: based on the research report and user conversations, the director produces the PRD and SPEC (with acceptance criteria), landing in `docs/pd/prd/` and `docs/pd/spec/` **after dev-m review**.
 3. **dev-m splits tickets**: dev-m uses `/to-tickets` to cut the SPEC into matching development tickets under `docs/dev/tickets/`; dev-m consolidates, reviews and integrates the department's results.
 4. **dev-m spawns team leads and dispatches tickets**: dev-m creates `dev-tl{n}` per batch and hands over the ticket (path, base sha, Files boundary, acceptance criteria, `timeoutMs`, report format); the team lead creates the worktree, dispatches `dev-e`, runs the implementation-level check and reports back to dev-m.
@@ -247,10 +249,10 @@ The SPEC must be self-contained: every User Story converts into a ticket and int
 
 | Gate | Submitted by | Reviewed by | Pass condition |
 |---|---|---|---|
-| Research report | ana-m | director | The director accepts the conclusions and sources; lands in `docs/research/` |
+| Research report | ana-m | director | The director accepts the conclusions and sources; lands in `docs/analyst/` |
 | PRD and SPEC | director | dev-m | dev-m accepts feasibility and slicing granularity; lands in `docs/pd/prd/` and `docs/pd/spec/` |
 | Implementation check | dev-tl | dev-m | Every ticket criterion has a reading, red gates are classified, Files boundary respected |
-| User architecture / user plan | director | User | Structure matches the real code, no future state mixed in; lands in `docs/user/user-arch/` and `docs/user/user-plan/` |
+| Human architecture / human plan | director | User | Structure matches the real code, no future state mixed in; lands in `docs/human/human-arch/` and `docs/human/human-plan/` |
 | Ticket code | dev-m | director | Every SPEC acceptance criterion passes; push only after the director notifies dev-m |
 | Cross-department disagreement | dev-m / ana-m | director | The director arbitrates and replies with a ruling |
 
@@ -261,15 +263,17 @@ The reader is **someone who knows a little software engineering but did not work
 ## 7. Checker
 
 ```bash
-bash director/scripts/check-pda-doc-paths.sh
+bash director/scripts/check-dmt-doc-paths.sh
 ```
 
-Four checks: the six output directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/research`, `docs/user/user-arch`, `docs/user/user-plan`) plus the root `inbox/`; the five skills (`director` / `dev-m` / `ana-m` / `dev-tl` / `ana-tl`) each point at their own directory; this contract registers every path; a negative sample is rejected. **Rerun after any path change.**
+Four checks: the six output directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/analyst`, `docs/human/human-arch`, `docs/human/human-plan`) plus the root `inbox/`; the five skills (`director` / `dev-m` / `ana-m` / `dev-tl` / `ana-tl`) each point at their own directory; this contract registers every path; a negative sample is rejected. **Rerun after any path change.**
 
 ## 8. Change log
 
 - **2026-10-22 (user ruling, org change)**: the project is named **dmt** and the organization is fixed at **four levels** `director → department manager → team lead → engineer`: (1) the top role is `director` (director, also product manager) with only `dev-m` and `ana-m` reporting to it; (2) development manager `dev-m` owns n development team leads `dev-tl{n}` (same label, spawned on demand with `herdr tab create --label`), each owning development engineers `dev-e`; (3) analysis manager `ana-m` owns n analysis team leads `ana-tl{n}`, each owning analysis engineers `ana-e`; (4) every role talks only to its direct superior and direct reports, and cross-department matters go through the director.
 - **2026-10-21 (user ruling)**: (1) the PRD category **returns**, moving from `docs/prd/` to `docs/pd/prd/` (`docs/prd/` is void); (2) `docs/dev/arch/` is added as the **software design architecture** location, written by dev-m and reviewed by the director, named `{seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md`.
-- **2026-10-21 (user ruling, second)**: directory restructure: (1) the inbox moves to the project root `inbox/<director|dev-m|ana-m>/` and leaves `docs/` (`.gitignore` uses `inbox/*/`); (2) the SPEC moves from `docs/spec/` to `docs/pd/spec/`; (3) tickets move from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/user/user-arch/` and `docs/user/user-plan/` are added (both written by the director), and `docs/dev/arch/` is void.
-- **2026-10-21 (user ruling, third)**: sequence numbers split by output category: PRD `{prd-seq}`, research report `{research-seq}`, user architecture `{user-arch-seq}`, user plan `{user-plan-seq}`, each independent and accumulating within its category; SPEC and ticket still share `{spec-seq}`; inbox messages keep the `{seq}` message number.
+- **2026-10-21 (user ruling, second)**: directory restructure: (1) the inbox moves to the project root `inbox/<director|dev-m|ana-m>/` and leaves `docs/` (`.gitignore` uses `inbox/*/`); (2) the SPEC moves from `docs/spec/` to `docs/pd/spec/`; (3) tickets move from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/human/human-arch/` and `docs/human/human-plan/` are added (both written by the director), and `docs/dev/arch/` is void.
+- **2026-10-21 (user ruling, third)**: sequence numbers split by output category: PRD `{prd-seq}`, research report `{research-seq}`, human architecture `{human-arch-seq}`, human plan `{human-plan-seq}`, each independent and accumulating within its category; SPEC and ticket still share `{spec-seq}`; inbox messages keep the `{seq}` message number.
 - **2026-10-21 (user ruling, fourth)**: directories are **checked and filled by the director at initialization** (§3.1 added, idempotent command + `ALL_PASS` criterion); ana-m / dev-m never create output directories and report gaps to the director.
+- **2026-10-22 (user ruling, fifth)**: directory rename: (1) the research-report directory `docs/research/` becomes `docs/analyst/` (still owned by ana-m); (2) `docs/user/` becomes `docs/human/`, with `user-arch/`→`human-arch/` and `user-plan/`→`human-plan/` underneath (still owned by the director); (3) the checker script `check-pda-doc-paths.sh` is renamed `check-dmt-doc-paths.sh`, and inside it `PDA_SKILLS_DIR`→`DMT_SKILLS_DIR` and the negative sample `docs/not-a-pda-output-dir/`→`docs/not-a-dmt-output-dir/`.
+- **2026-10-22 (user ruling, sixth)**: inbox protocol simplified: on the doorbell alert the receiver loads the file into its context window, **sends no receipt**, and deletes it once read; delivery is proven by a successful doorbell send, not by an ack; also clarified that one herdr tab holds exactly one pane (one agent).
