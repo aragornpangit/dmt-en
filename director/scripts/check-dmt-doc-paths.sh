@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # dmt 产物落盘路径机检（检查「使用本团队的项目」）
 # 判据来源：本仓 team.md §3「落盘唯一位置（硬约束）」
-# 用法：bash director/scripts/check-pda-doc-paths.sh [项目根目录]    默认当前目录
-#     环境变量 PDA_SKILLS_DIR 可覆盖技能安装位置（默认 <项目根>/.agents/skills）
+# 用法：bash director/scripts/check-dmt-doc-paths.sh [项目根目录]    默认当前目录
+#     环境变量 DMT_SKILLS_DIR 可覆盖技能安装位置（默认 <项目根>/.agents/skills）
 set -u
 
 ROOT="$(cd "${1:-$PWD}" && pwd)" || exit 2
-SKILLS_DIR="${PDA_SKILLS_DIR:-$ROOT/.agents/skills}"
+SKILLS_DIR="${DMT_SKILLS_DIR:-$ROOT/.agents/skills}"
 # 契约定位：优先项目内的 docs/team.md，回退到脚本真实位置的上一级（脚本与本仓 team.md 同级时）
 if [ -f "$ROOT/docs/team.md" ]; then
   CONTRACT="$ROOT/docs/team.md"
@@ -15,7 +15,7 @@ else
 fi
 
 # 六个产物目录（docs 下）+ 收件箱根（项目根下，不在 docs/ 内）
-DOC_DIRS="docs/pd/prd docs/pd/spec docs/dev/tickets docs/research docs/user/user-arch docs/user/user-plan"
+DOC_DIRS="docs/pd/prd docs/pd/spec docs/dev/tickets docs/analyst docs/human/human-arch docs/human/human-plan"
 
 fail=0
 echo "项目根：  $ROOT"
@@ -56,16 +56,17 @@ check() {
 }
 check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/prd/'
 check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/spec/'
-check "$SKILLS_DIR/director/SKILL.md" 'docs/user/user-arch/'
+check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-arch/'
+check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-plan/'
 check "$SKILLS_DIR/dev-m/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/ana-m/SKILL.md" 'docs/research/'
+check "$SKILLS_DIR/ana-m/SKILL.md" 'docs/analyst/'
 check "$SKILLS_DIR/dev-tl/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/ana-tl/SKILL.md" 'docs/research/'
+check "$SKILLS_DIR/ana-tl/SKILL.md" 'docs/analyst/'
 
 echo
 echo "== 3) 团队契约必须登记六个唯一目录与收件箱根 =="
 if [ -f "$CONTRACT" ]; then
-  for d in 'docs/pd/prd/' 'docs/pd/spec/' 'docs/dev/tickets/' 'docs/research/' 'docs/user/user-arch/' 'docs/user/user-plan/' 'inbox/'; do
+  for d in 'docs/pd/prd/' 'docs/pd/spec/' 'docs/dev/tickets/' 'docs/analyst/' 'docs/human/human-arch/' 'docs/human/human-plan/' 'inbox/'; do
     if grep -q -- "$d" "$CONTRACT"; then
       echo "OK   契约含              $d"
     else
@@ -80,7 +81,7 @@ fi
 
 echo
 echo "== 4) 负样本：判据必须能拒绝坏路径（期望 rc=1） =="
-if grep -q -- 'docs/not-a-pda-output-dir/' "$CONTRACT"; then
+if grep -q -- 'docs/not-a-dmt-output-dir/' "$CONTRACT"; then
   echo "FAIL 坏路径被误判为存在"
   fail=1
 else
