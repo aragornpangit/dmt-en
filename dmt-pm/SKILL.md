@@ -47,7 +47,7 @@ Full text in `dmt-director/team.md` §1.3. In one sentence: **write the body to 
 - Write: `inbox/<recipient role>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (under the project root, **not in `docs/`**; `mkdir -p` as a fallback)
 - Use the script: `bash dmt-director/scripts/send-msg.sh <recipient role> <self> <slug> <body file>` (computes `{seq}`/timestamp/direction automatically, writes the file and then rings the doorbell; if the label is missing it only writes the file and warns)
 - Bell (peer harness ∈ codebuddy / pi-coding-agent / codex / opencode2 / opencode): `herdr agent prompt <pane> '<short sentence>'`, delivered when it returns `"type":"agent_prompted"`; **if it returns anything other than `agent_prompted`, or the peer is another harness**, fall back to `herdr pane send-text <pane> '<short sentence>'` + `herdr pane send-keys <pane> enter`, and verify with `pane read` that the input box is cleared
-- Receive: read new files in `inbox/pm/` → **read into the context window** → **do not acknowledge** → **delete right after reading**
+- Receive: **move it into `.doing/` with `msg-take.sh`** (claim before reading) → **load into the context window** → **no acknowledgement** → **delete it from `.doing/` with `msg-done.sh` once done**
 
 Role-specific differences:
 

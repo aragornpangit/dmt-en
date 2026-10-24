@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# For managers: close this batch's leader panes (close pane only, not tab; non-creators must not close on their behalf)
+# Manager only: close this batch's leader pane (pane only, never the tab; non-creators must not close for others)
 # Usage: bash close-leader.sh <devm|anam> <n> [--force] [--dry-run]
 set -eu
 ROLE="${1:?usage: close-leader.sh <devm|anam> <n> [--force] [--dry-run]}"
@@ -14,12 +14,14 @@ if [ "$ROLE" = devm ]; then PREFIX=devtl; ME=devm; else PREFIX=anatl; ME=anam; f
 LABEL="${PREFIX}${N}"
 
 pane="$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
-  | jq -r --arg l "$LABEL" '.result.panes[] | select(.label==$l) | .pane_id' | head -1)"
+  | jq -r --arg l "$LABEL" '.result.panes[] | select(.label==$l) | .pane_id' | head -1 || true)"
 [ -n "$pane" ] || { echo "$LABEL not found (already closed?)"; exit 0; }
 
 inbox="inbox/$ME"
-if [ -d "$inbox" ] && [ -n "$(ls -A "$inbox" 2>/dev/null || true)" ] && [ "$FORCE" != 1 ]; then
-  echo "REFUSE: $inbox still has unread messages; handle them first, or add --force" >&2
+unread="$(find "$inbox" -maxdepth 1 -name '*.md' 2>/dev/null | head -1 || true)"
+doing="$(find "$inbox/.doing" -maxdepth 1 -name '*.md' 2>/dev/null | head -1 || true)"
+if [ "$FORCE" != 1 ] && { [ -n "$unread" ] || [ -n "$doing" ]; }; then
+  echo "REFUSE: $inbox still has unread or unclosed messages (root / .doing/); handle them first or add --force" >&2
   exit 3
 fi
 

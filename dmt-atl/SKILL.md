@@ -32,7 +32,7 @@ Team conventions and gates see `dmt-director/team.md` (this repo; after installi
 ## Communication
 
 - **Own identity**: pane label = `anatl{n}` (`$HERDR_PANE_ID`), **not** the tab label.
-- **anam → self**: pane message (resolve the pane by label `anatl{n}`, do not record pane ids).
+- **anam → self**: prose lands in `inbox/anatl{n}/` plus a doorbell (resolve the pane by label `anatl{n}`, do not record pane ids). **Claim before reading**: `bash dmt-director/scripts/msg-take.sh anatl{n} <file>` moves it into `.doing/`; **when done**, `msg-done.sh anatl{n} <file>` deletes it.
 - **Self → anam**: body to `inbox/anam/{seq}-anatl{n}2anam-{slug}-{YYMMDDHHMM}.md` (`inbox/` is at the repo root and already gitignored) + ring the doorbell on `anam`'s pane: `herdr agent prompt <pane> '<short sentence>'` (carries its own Enter; returning `agent_prompted` means delivered; also applies to the codebuddy panel, verified 2026-10-24); only on failure fall back to `herdr pane send-text` + `send-keys enter` and `pane read` to verify the input box is cleared.
 - **Use the script**: `bash dmt-director/scripts/send-msg.sh anam anatl{n} <slug> <body file>` (computes seq/timestamp/direction automatically; on doorbell failure falls back to `send-text` + `send-keys`).
 - **Delivery quoting discipline**: wrap the whole segment in single quotes, **no backticks and no `$()`**.

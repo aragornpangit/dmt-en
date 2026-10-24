@@ -178,9 +178,19 @@ done
 
 echo
 echo "== 4j) Deterministic actions must be scripted (scripts complete and executable) =="
-for s in init-project.sh setup-team.sh spawn-leader.sh close-leader.sh send-msg.sh publish.sh file-claim.sh install-skills.sh check-dmt-doc-paths.sh; do
+for s in init-project.sh setup-team.sh spawn-leader.sh close-leader.sh send-msg.sh msg-take.sh msg-done.sh publish.sh file-claim.sh install-skills.sh check-dmt-doc-paths.sh; do
   f="$(dirname "$(readlink -f "$0")")/$s"
   if [ -x "$f" ]; then echo "OK   $s"; else echo "FAIL $s missing or not executable"; fail=1; fi
+done
+
+echo
+echo "== 4k) The three-state inbox must be registered (claim .doing/, delete when done, .seq high-water) =="
+check "$CONTRACT" '.doing/' 'team contract'
+check "$CONTRACT" '.seq' 'team contract'
+check "$CONTRACT" 'msg-take.sh' 'team contract'
+check "$CONTRACT" 'msg-done.sh' 'team contract'
+for role in dmt-director dmt-pm dmt-dm dmt-am dmt-dtl dmt-atl; do
+  check "$SKILLS_DIR/$role/SKILL.md" 'msg-take.sh' "$role"
 done
 
 echo
