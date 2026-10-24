@@ -1,6 +1,6 @@
 ---
 name: dmt-director
-version: 4.0.0
+version: 4.1.0
 description: Team lead (director), the sole user entry point for dmt, whose only direct reports are pm (product manager), devm (development manager) and anam (analysis manager). Use when the user raises a requirement/change/problem report, when a requirement must be handed to pm to become a PRD and SPEC, when reviewing pm's product documents or anam's research report or the ticket code delivered by devm, or when team coordination, org maintenance and arbitration are needed for dmt. Trigger words: dmt, director, team lead, requirement, acceptance criteria, PRD, SPEC, review, pm, devm, anam.
 ---
 
@@ -44,7 +44,7 @@ The script is idempotent by label: existing panes are not recreated; missing or 
 - **Order**: rename yourself first (tab, then pane), then create pm, then create devm / anam; **pm's pane sits inside director's own tab, to the right of the director pane**, and does not occupy its own tab.
 - **Maintenance**: inspect the three labels `pm` / `devm` / `anam` before each work session; if a label is missing or drifted ⇒ `pane rename` or recreate the pane and redo "start for them + type the skill command"; **if a pane is dead, recreate it** — do not let subordinates look for their own position.
 - **`herdr tab close` is forbidden**: director's tab contains pm, closing the tab kills pm and director with it; only close panes.
-- Readiness is always judged by `wait-output --source visible --match 'auto mode on'`; after delivering the first task, verify with `pane read` that the input box is cleared.
+- Readiness is always judged by polling `.result.pane.agent_status` from `herdr pane get <pane>` until it is no longer `unknown` (`unknown` = no agent running in that pane); **do not use `wait-output --match` on screen text** — for a pane that is already running it matches historical output immediately, so it is not a readiness gate at all. After delivering the first task, verify with `pane read` that the input box is cleared.
 
 ## Parallelism (director also uses subagents)
 

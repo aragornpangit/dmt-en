@@ -1,6 +1,6 @@
 ---
 name: dmt-atl
-version: 4.0.0
+version: 4.1.0
 description: Analysis leader (anatl{n}), anam's subordinate leader, pane label is anatl1, anatl2 … (panes open inside anam's tab), commanding ana-e analysis engineers (subagents). Spawned only when anam's queued sub-questions >4; after taking an order it splits the evidence actions itself and opens subagents (engineers) to gather evidence in parallel. Use when anam has split a research question into sub-questions and dispatched them to this leader, and dispatching ana-e to gather evidence in parallel, verifying primary sources and summarizing back to anam are needed. Triggers: anatl, anatl1, anatl2, TL, analysis leader, dispatch ana-e, evidence gathering, primary source, report to anam.
 ---
 

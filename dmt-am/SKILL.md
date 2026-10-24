@@ -1,6 +1,6 @@
 ---
 name: dmt-am
-version: 4.0.0
+version: 4.1.0
 description: Analysis manager (anam), head of the dmt analysis department, direct report to director. Breaks research requests into sub-questions; when queued sub-questions ≤4 it derives ana-e subagents itself, when >4 it opens leader panes inside its own tab via herdr pane split (pane label fixed as anatl{n}, prefer cbc + /dmt-atl), and the leader takes the ticket then opens ana-e subagents; responsible for verifying sources, closing out reports and reclaiming leader panes. Use when market research, competitor reverse engineering, open-source solution benchmarking, technology selection evidence gathering, APK/AAR/ELF binary evidence analysis, or producing research reports is needed. Triggers: dmt, anam, analysis manager, analysis manager, research, anatl, ana-e, competitor analysis, reverse engineering, REA, research, leader pane, pane label.
 ---
 
