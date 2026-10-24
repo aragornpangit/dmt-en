@@ -96,13 +96,18 @@ check "$SKILLS_DIR/dmt-atl/SKILL.md" 'must run in parallel' 'anatl'
 check "$CONTRACT" '≥2 ⇒ must be dispatched concurrently' 'team contract'
 
 echo
-echo "== 4b) Manager-tier path criteria must be registered (devm ≤4 / anam ≤4) =="
+echo "== 4b) Manager-tier path criteria and saturated dispatch must be registered (devm ≤4 / anam ≤4) =="
 check "$SKILLS_DIR/dmt-dm/SKILL.md" '≤4' 'devm'
 check "$SKILLS_DIR/dmt-dm/SKILL.md" '>4' 'devm'
 check "$SKILLS_DIR/dmt-am/SKILL.md" '≤4' 'anam'
 check "$SKILLS_DIR/dmt-am/SKILL.md" '>4' 'anam'
 check "$CONTRACT" '≤4 ⇒ derive `dev-e` itself' 'team contract'
 check "$CONTRACT" '≤4 ⇒ derive `ana-e` itself' 'team contract'
+check "$CONTRACT" 'concurrency = number of units' 'team contract'
+check "$SKILLS_DIR/dmt-dm/SKILL.md" 'saturat' 'devm'
+check "$SKILLS_DIR/dmt-am/SKILL.md" 'saturat' 'anam'
+check "$SKILLS_DIR/dmt-dm/SKILL.md" 'teammate' 'devm'
+check "$SKILLS_DIR/dmt-am/SKILL.md" 'teammate' 'anam'
 
 echo
 echo "== 4c) Doorbell channels must be registered (the five harnesses prefer agent prompt, others fall back) =="
