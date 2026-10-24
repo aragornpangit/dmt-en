@@ -20,7 +20,7 @@ Members run inside Herdr, a terminal multiplexer for AI agents, and **identify p
 **Inter-role communication = inbox file + herdr doorbell**: the body goes into the receiver's `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (project root, not under `docs/`), herdr carries one line ("you have a new message …"), and the receiver **does not send a receipt**, loads it into context and deletes the file (details in `team.md` §1.3).
 Workflow in one line: anam opens a lead pane and researches (director reviews) → director writes the PRD and SPEC (devm reviews) → devm splits tickets and opens a lead pane → the lead spawns dev-e to implement and check → devm integrates → director approves → devm `git push`.
 
-**Team contract (the single authority on organization, communication, file naming, directory ownership and discipline) = [`team.md`](team.md).**
+**Team contract (the single authority on organization, communication, file naming, directory ownership and discipline) = [`dmt-director/team.md`](dmt-director/team.md).**
 
 ```
 dmt/                                    # one folder per role
@@ -73,7 +73,7 @@ bash dmt-director/scripts/check-dmt-doc-paths.sh <project root>   # checks the c
 # override with DMT_SKILLS_DIR when the skills are not under <project>/.agents/skills (default on line 9 of the script)
 ```
 
-Six checks: the six output directories plus the root `inbox/` exist (**the director fills gaps at initialization**, see `team.md` §3.1); the five role skills each point at their own directory; **the team-lead close action is registered** (the contract and the `devm` / `anam` skills contain `herdr pane close`, and the contract forbids closing before collecting and bans `herdr tab close`); **identity resolution is registered** (the contract and all five skills contain `pane label`); **the team-lead parallelism criterion is registered** (`devtl` / `anatl` say the work "must run in parallel", and the contract says "≥2 ⇒ dispatch concurrently"); the contract registers every path; a negative sample is rejected (**only the §3 table is inspected**; history in §8 does not count). **Rerun after any change to paths, pane lifecycle or parallelism criteria.**
+**Seven** checks: (1) the six output directories plus the root `inbox/` exist (**the director fills gaps at initialization**, see `team.md` §3.1); (2) the five skills (`dmt-director` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl`) each point at their own directory; (3) **the team-lead close action is registered** (the contract and the `dmt-dm` / `dmt-am` skills contain `herdr pane close`, and the contract says "Only panes may be closed"); (4) **identity resolution is registered** (the contract and all five skills contain `pane label`); (5) **the team-lead parallelism criterion is registered** (`dmt-dtl` / `dmt-atl` say the work "must run in parallel", and the contract says "≥2 ⇒ dispatch concurrently"); (6) the contract registers every path; (7) a negative sample is rejected (**only the §3 table is inspected**; history in §8 does not count). **Rerun after any change to paths, pane lifecycle or parallelism criteria.**
 
 ## Maintenance
 
