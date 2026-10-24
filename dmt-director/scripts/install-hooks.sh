@@ -15,12 +15,14 @@ if [ "$ARG1" = "--user" ]; then
   DIR="$SELF_DIR"
 else
   ROOT="$(cd "$ARG1" && pwd)"
-  DIR="$ROOT/scripts"
+  DIR="$ROOT/dmt-director/scripts"
   [ -d "$DIR" ] || { echo "missing $DIR (run install-skills.sh first)" >&2; exit 2; }
   CFG="$ROOT/.codebuddy/settings.json"
 fi
 if [ "$DRY" = 1 ]; then echo "would write $CFG (scripts: $DIR)"; exit 0; fi
 mkdir -p "$(dirname "$CFG")"
+# a copied script tree loses the executable bit; the hook runs via `bash` but 4j checks -x
+chmod +x "$DIR"/*.sh 2>/dev/null || true
 [ -f "$CFG" ] && cp "$CFG" "$CFG.bak-$(date +%Y%m%d%H%M%S)"
 
 python3 - "$CFG" "$DIR" <<'PY'

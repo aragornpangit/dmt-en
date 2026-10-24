@@ -1,6 +1,6 @@
 ---
 name: dmt-pm
-version: 4.0.0
+version: 4.1.0
 description: Product department manager (pm), head of the dmt product department, reports directly to director, and has exactly one direct report: the product engineer pm-e (a sub-agent that does not occupy a pane). Takes the requirement conclusions from director and personally writes the PRD, SPEC (/to-spec) and development tickets (/to-tickets), plus the human architecture and human plan; all independent product work is parallelized with sub-agents. Use when you need to write a PRD or SPEC, split a SPEC into tickets, break down user stories, define acceptance criteria, write human architecture or a human plan, or check product document consistency. Trigger words: dmt, pm, product manager, product department manager, PRD, SPEC, ticket, work order, to-spec, to-tickets, user story, acceptance criteria, human-arch, human-plan, pm-e.
 ---
 

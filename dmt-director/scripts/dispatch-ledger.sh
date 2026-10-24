@@ -26,7 +26,16 @@ ROLE="$(resolve_role "$ROLE")"
 if [ "${DMT_DISPATCH_ALL:-0}" != 1 ]; then
   case "$ROLE" in director|pm|devm|anam) ;; *) exit 0 ;; esac
 fi
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# The ledger always lands at the *main worktree* root: running inside a worktree still writes
+# <main>/locks/, otherwise the director's scan of locks/dispatch-*.tsv at the project root misses it
+# and not every branch's .gitignore lists locks/.
+root="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [ -n "$root" ]; then
+  case "$root" in */.git) root="${root%/.git}" ;; esac
+else
+  root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
+ROOT="$root"
 LEDGER="$ROOT/locks/dispatch-$ROLE.tsv"
 mkdir -p "$ROOT/locks"
 

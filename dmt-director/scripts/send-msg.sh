@@ -18,11 +18,15 @@ mkdir -p "$BOX/.doing"
 
 # Self-healing scan: highest number currently in the root and .doing/ (fallback when .seq is lost or copied)
 scan_max="$(find "$BOX" -maxdepth 2 -name '[0-9]*-*' -printf '%f\n' 2>/dev/null \
-            | sed -n 's/^\([0-9]\{1,\}\)-.*/\1/p' | sort -n | tail -1 || true)"
+            | sed -n 's/^0*\([0-9]\{1,\}\)-.*/\1/p' | sort -n | tail -1 || true)"
 # High-water: the highest number ever issued; does not regress when messages are deleted (must be a decimal integer without leading zeros)
 file_max="$(cat "$BOX/.seq" 2>/dev/null || echo 0)"
 case "$file_max" in ''|*[!0-9]*) file_max=0 ;; esac
+# Leading zeros in filenames (077) or in an older .seq are parsed as octal by bash (077 = 63),
+# which pushes the counter back to 64 and creates duplicates: force base 10 everywhere.
 [ -n "${scan_max:-}" ] || scan_max=0
+scan_max=$((10#$scan_max))
+file_max=$((10#$file_max))
 if [ "$scan_max" -gt "$file_max" ]; then file_max="$scan_max"; fi
 seq_num=$(( file_max + 1 ))
 seq="$(printf '%03d' "$seq_num")"

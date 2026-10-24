@@ -1,6 +1,6 @@
 ---
 name: dmt-dm
-version: 4.0.0
+version: 4.1.0
 description: Development manager (devm), head of the dmt development department, reports directly to director. Takes the development tickets (ticket) that pm writes to disk and puts the development team to work: when queued tasks ≤4 it spawns dev-e sub-agents itself, when >4 it opens leader panes with herdr pane split inside its own tab (pane label fixed as devtl{n}, preferring cbc + /dmt-dtl), and the leader spawns dev-e sub-agents after taking the assignment; **code gate**: owns the review (item-by-item criteria PASS/FAIL), integrates the development department's deliverables and closes out the leader panes, does not split tickets, does not push (installation and push belong to director). Use when you need to take assignments and schedule, dispatch and accept tickets, or fix defects. Trigger words: dmt, devm, development manager, assignment, ticket, work order, scheduling, acceptance, integration, worktree, devtl, dev-e, leader pane, pane label.
 ---
 

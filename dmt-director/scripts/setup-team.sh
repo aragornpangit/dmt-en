@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
-# For director: rename yourself, create the pm / devm / anam panes and start cbc in them (idempotent)
-# Usage: bash setup-team.sh [--dry-run] [--no-start]
+# For director: rename yourself, create the pm / devm / anam panes and start cbc in them
+# (creating and starting are both idempotent)
+# Usage: bash setup-team.sh [--dry-run] [--no-start] [--force-start] [--reload]
+#   --no-start     only create panes, do not start
+#   --force-start  resend the start command even if an agent is already running
+#                  (default: skip -- sending a start command to a running agent is read as a user prompt)
+#   --reload       for a pane that is already running only resend the skill command
+#                  (reload the skill, no start command)
 #   requires env vars HERDR_ENV=1, HERDR_PANE_ID, HERDR_TAB_ID, HERDR_WORKSPACE_ID
 set -eu
-DRY=0; START=1
+DRY=0; START=1; FORCE=0; RELOAD=0
 for a in "$@"; do
   case "$a" in
     --dry-run) DRY=1 ;;
     --no-start) START=0 ;;
+    --force-start) FORCE=1 ;;
+    --reload) RELOAD=1 ;;
     *) echo "unknown arg: $a" >&2; exit 2 ;;
   esac
 done
@@ -21,12 +29,44 @@ pane_by_label() {
   HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
     | jq -r --arg l "$1" '.result.panes[] | select(.label==$l) | .pane_id' | head -1
 }
+# agent_status: unknown = no agent running in this pane; idle/working/blocked = already running
+pane_status() {
+  HERDR_ENV=1 herdr pane get "$1" 2>/dev/null \
+    | jq -r '.result.pane.agent_status // "unknown"' 2>/dev/null || echo unknown
+}
+# Readiness signal: poll agent_status until it is no longer unknown.
+# Do not use wait-output matching on screen text -- for a pane that is already running it
+# matches historical output immediately, so it is not a readiness gate at all.
+wait_ready() {
+  local pane="$1" i=0 st
+  while [ "$i" -lt 60 ]; do
+    st="$(pane_status "$pane")"
+    if [ "$st" != "unknown" ]; then echo "ready ($st): $pane"; return 0; fi
+    sleep 1; i=$((i + 1))
+  done
+  echo "WARN: $pane still unknown after 60s; skill command sent anyway" >&2
+  return 1
+}
 ensure_started() {
-  local pane="$1" skill="$2"
+  local pane="$1" skill="$2" st
   [ "$START" = 1 ] || { echo "skip start: $pane"; return 0; }
+  if [ "$DRY" = 1 ]; then
+    echo "+ [dry] start $pane: codebuddy --permission-mode auto  then  $skill" >&2
+    return 0
+  fi
+  st="$(pane_status "$pane")"
+  if [ "$st" != "unknown" ] && [ "$FORCE" != 1 ]; then
+    echo "already running (agent_status=$st): $pane -- start command not resent"
+    if [ "$RELOAD" = 1 ]; then
+      h env HERDR_ENV=1 herdr pane send-text "$pane" "$skill"
+      h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+      echo "reloaded skill on $pane"
+    fi
+    return 0
+  fi
   h env HERDR_ENV=1 herdr pane send-text "$pane" 'codebuddy --permission-mode auto'
   h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
-  h env HERDR_ENV=1 herdr pane wait-output "$pane" --source visible --match 'auto mode on' --timeout 60000
+  wait_ready "$pane" || true
   h env HERDR_ENV=1 herdr pane send-text "$pane" "$skill"
   h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
 }

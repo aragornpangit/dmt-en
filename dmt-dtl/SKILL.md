@@ -1,6 +1,6 @@
 ---
 name: dmt-dtl
-version: 4.0.0
+version: 4.1.0
 description: Development leader (devtl{n}), devm's subordinate leader, pane label is devtl1, devtl2 … (panes open inside devm's tab), commanding dev-e development engineers (subagents). Spawned only when devm's queued tasks >4; after taking a ticket it creates its own worktree and opens subagents (engineers) to do the work. Use when devm has split a SPEC into tickets and dispatched them to this leader, and creating a worktree, dispatching dev-e to implement, collecting diffs and gate readings, doing implementation-level first-pass checks and reporting back to devm are needed. Triggers: devtl, devtl1, devtl2, TL, development leader, dispatch dev-e, worktree, collect diff, first-pass check, report to devm.
 ---
 

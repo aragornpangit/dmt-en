@@ -10,7 +10,16 @@
 # Env vars: DMT_LOCKS_DIR (default <project-root>/locks), DMT_CLAIM_TTL (seconds, default 1800)
 set -u
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# The ledger always lands at the *main worktree* root: running inside a worktree still writes
+# <main>/locks/, otherwise the director's scan of locks/dispatch-*.tsv at the project root misses it
+# and not every branch's .gitignore lists locks/.
+root="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [ -n "$root" ]; then
+  case "$root" in */.git) root="${root%/.git}" ;; esac
+else
+  root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
+ROOT="$root"
 LOCKS="${DMT_LOCKS_DIR:-$ROOT/locks}"
 TTL="${DMT_CLAIM_TTL:-1800}"
 mkdir -p "$LOCKS" 2>/dev/null

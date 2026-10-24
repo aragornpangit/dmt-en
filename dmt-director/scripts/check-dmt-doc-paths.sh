@@ -205,6 +205,35 @@ done
 check "$SKILLS_DIR/dmt-director/SKILL.md" 'concurrency ledger' 'director'
 
 echo
+echo "== 4m) The team contract must carry a version and date matching the six skills =="
+ver_skill="$(sed -n 's/^version: *//p' "$SKILLS_DIR/dmt-director/SKILL.md" 2>/dev/null | head -1)"
+if [ -n "$ver_skill" ]; then echo "OK   director skill version  $ver_skill"; else echo "FAIL director skill has no version"; fail=1; fi
+ver_doc="$(head -10 "$CONTRACT" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+if [ -n "$ver_doc" ]; then echo "OK   contract header version $ver_doc"; else echo "FAIL contract header has no version (a spot check cannot tell which version is loaded)"; fail=1; fi
+if [ -n "$ver_skill" ] && [ "$ver_doc" = "$ver_skill" ]; then
+  echo "OK   contract matches skills $ver_doc"
+else
+  echo "FAIL contract and skills differ  doc=${ver_doc:-none} skill=${ver_skill:-none}"; fail=1
+fi
+if head -10 "$CONTRACT" 2>/dev/null | grep -qE '[0-9]{4}-[0-9]{2}-[0-9]{2}'; then
+  echo "OK   contract header has a date"
+else
+  echo "FAIL contract header has no date"; fail=1
+fi
+for role in dmt-pm dmt-dm dmt-am dmt-dtl dmt-atl; do
+  v="$(sed -n 's/^version: *//p' "$SKILLS_DIR/$role/SKILL.md" 2>/dev/null | head -1)"
+  if [ -n "$v" ] && [ "$v" = "$ver_skill" ]; then echo "OK   $role version matches"; else echo "FAIL $role version differs (${v:-none})"; fail=1; fi
+done
+
+# From the project root scripts/ does not exist (scripts live in dmt-director/scripts/); only the prefixed form is allowed
+# Body only (§0-§7); historical forms in the §8 change log do not count
+if sed -n '1,/^## 8\./p' "$CONTRACT" 2>/dev/null | grep -q '`scripts/'; then
+  echo "FAIL contract has a script path without the dmt-director/ prefix (rc=127 from the project root)"; fail=1
+else
+  echo "OK   all contract script paths carry the dmt-director/ prefix"
+fi
+
+echo
 echo "== 5) The team contract must register the six unique dirs and the inbox root =="
 if [ -f "$CONTRACT" ]; then
   for d in 'docs/pd/prd/' 'docs/pd/spec/' 'docs/dev/tickets/' 'docs/analyst/' 'docs/human/human-arch/' 'docs/human/human-plan/' 'inbox/'; do
