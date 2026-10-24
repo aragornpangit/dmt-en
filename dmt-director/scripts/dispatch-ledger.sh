@@ -38,6 +38,12 @@ case "$CMD" in
     echo "planned $# unit(s) for $ROLE"
     ;;
   inc)
+    # only a sub-agent dispatch counts as a unit: the hook fires on every tool, filter by tool_name
+    payload=""; if [ ! -t 0 ]; then payload="$(timeout 1 cat 2>/dev/null || true)"; fi
+    if [ -n "$payload" ]; then
+      tn="$(printf '%s' "$payload" | jq -r '.tool_name // empty' 2>/dev/null || true)"
+      case "$tn" in Agent|Task|Teammate|teammate) ;; *) exit 0 ;; esac
+    fi
     u="${1:-auto}"
     if grep -q "^$u	planned	-	" "$LEDGER" 2>/dev/null; then
       sed -i "s/^$u	planned	-	/$u	dispatched	-	/" "$LEDGER"
@@ -62,6 +68,9 @@ case "$CMD" in
     echo "done $u"
     ;;
   check)
+    # Stop hook anti-loop: if this turn was already bounced once (stop_hook_active=true), let it end
+    payload=""; if [ ! -t 0 ]; then payload="$(timeout 1 cat 2>/dev/null || true)"; fi
+    if [ -n "$payload" ] && [ "$(printf '%s' "$payload" | jq -r '.stop_hook_active // false' 2>/dev/null)" = "true" ]; then exit 0; fi
     # 超过 24h 的旧账不再阻断（避免历史批次卡住新会话）
     if [ -n "$(find "$LEDGER" -mmin +1440 2>/dev/null)" ]; then exit 0; fi
     [ -f "$LEDGER" ] || exit 0

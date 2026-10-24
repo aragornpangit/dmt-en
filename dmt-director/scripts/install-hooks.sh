@@ -31,17 +31,23 @@ if os.path.exists(cfg):
     try: data = json.load(open(cfg, encoding="utf-8"))
     except Exception: data = {}
 hooks = data.setdefault("hooks", {})
+def is_dmt(cmd):
+    return ("dispatch-ledger.sh" in cmd) or ("self-work-guard.sh" in cmd)
+# drop previous dmt entries so a matcher change cannot leave a duplicate behind
+for ev in list(hooks):
+    kept = []
+    for item in hooks[ev]:
+        item["hooks"] = [h for h in item.get("hooks", []) if not is_dmt(h.get("command", ""))]
+        if item["hooks"]: kept.append(item)
+    hooks[ev] = kept
 def add(event, matcher, cmd):
-    arr = hooks.setdefault(event, [])
-    for item in arr:
-        for h in item.get("hooks", []):
-            if h.get("command") == cmd: return
     entry = {"hooks": [{"type": "command", "command": cmd}]}
     if matcher: entry["matcher"] = matcher
-    arr.append(entry)
-add("PostToolUse", "Agent", "bash " + d + "/dispatch-ledger.sh inc - auto")
+    hooks.setdefault(event, []).append(entry)
+# matcher "*" everywhere: the scripts filter by tool_name / file path themselves
+add("PostToolUse", "*", "bash " + d + "/dispatch-ledger.sh inc - auto")
 add("Stop", None, "bash " + d + "/dispatch-ledger.sh check -")
-add("PreToolUse", "Edit|Write|MultiEdit", "bash " + d + "/self-work-guard.sh - \"$CLAUDE_FILE_PATH\"")
+add("PreToolUse", "*", "bash " + d + "/self-work-guard.sh -")
 json.dump(data, open(cfg, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print("hooks written to", cfg)
 PY
