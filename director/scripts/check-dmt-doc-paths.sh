@@ -64,11 +64,20 @@ check "$SKILLS_DIR/dev-tl/SKILL.md" 'docs/dev/tickets/'
 check "$SKILLS_DIR/ana-tl/SKILL.md" 'docs/analyst/'
 
 echo
-echo "== 3) the team-lead close action must be registered (close on completion; creator only) =="
-check "$CONTRACT" 'herdr tab close' 'team contract'
+echo "== 3) the team-lead close action must be registered (close on completion; creator only; panes, never tabs) =="
+check "$CONTRACT" 'herdr pane close' 'team contract'
 check "$CONTRACT" 'close before collecting' 'team contract'
-check "$SKILLS_DIR/dev-m/SKILL.md" 'herdr tab close' 'dev-m'
-check "$SKILLS_DIR/ana-m/SKILL.md" 'herdr tab close' 'ana-m'
+check "$CONTRACT" 'herdr tab close' 'team contract'   # registered as a prohibition; its presence proves the ban is still there
+check "$SKILLS_DIR/dev-m/SKILL.md" 'herdr pane close' 'dev-m'
+check "$SKILLS_DIR/ana-m/SKILL.md" 'herdr pane close' 'ana-m'
+
+echo
+echo "== 3b) identity must resolve by pane label (never by position inside a tab) =="
+check "$CONTRACT" 'pane label' 'team contract'
+check "$CONTRACT" 'position inside a tab' 'team contract'
+for role in director dev-m ana-m dev-tl ana-tl; do
+  check "$SKILLS_DIR/$role/SKILL.md" 'pane label' "$role"
+done
 
 echo
 echo "== 4) the team-lead parallelism criterion must be registered (independent >=2 => concurrent) =="
@@ -77,11 +86,6 @@ check "$SKILLS_DIR/ana-tl/SKILL.md" 'must run in parallel' 'ana-tl'
 check "$CONTRACT" '≥2 ⇒ dispatch concurrently' 'team contract'
 
 echo
-echo "== 4b) the manager staffing mode must be registered (self-run / delegated) =="
-check "$SKILLS_DIR/dev-m/SKILL.md" 'self-run' 'dev-m'
-check "$SKILLS_DIR/ana-m/SKILL.md" 'self-run' 'ana-m'
-check "$CONTRACT" 'staffing mode' 'team contract'
-
 echo
 echo "== 5) the contract must register the six single locations and the inbox root =="
 if [ -f "$CONTRACT" ]; then
