@@ -1,5 +1,5 @@
 ---
-name: devm
+name: dmt-devm
 version: 3.0.0
 description: Development manager for dmt, reporting to director, with exactly one direct report — the development team lead devtl{n}. Splits a SPEC into development tickets; when work must spread in parallel it opens lead panes inside its own tab with herdr pane split (pane label devtl{n}), and the lead then spawns the dev-e sub-agents; owns acceptance, integration, lead-pane teardown and push. Use when a SPEC must be split into tickets, when tickets must be dispatched and accepted, when defects must be fixed, or when reviewed code must be pushed. Triggers: dmt, devm, development manager, ticket, to-tickets, worktree, devtl, dev-e, lead pane, pane label.
 ---
@@ -8,7 +8,7 @@ description: Development manager for dmt, reporting to director, with exactly on
 
 devm is dmt's **development manager**: its **only superior is `director`**, and its **only direct report is the development team lead `devtl{n}`** (spawned on demand, its pane opened inside devm's own tab).
 The development engineer `dev-e` is **always the lead's sub-agent**: it occupies no pane, carries no skill and never talks to devm across panes; devm **must not** task dev-e directly nor receive its reports directly.
-Team rules, naming and gates live in `director/team.md` (this repo; once installed in a project, `docs/team.md` — **the single authority**; this file does not repeat them).
+Team rules, naming and gates live in `dmt-director/team.md` (this repo; once installed in a project, `docs/team.md` — **the single authority**; this file does not repeat them).
 
 **Single-line command (hard rule)**: across sessions devm talks only to `director` (up) and `devtl{n}` (down); **never sideways to anam**; **never commands `anatl{n}`**.
 
@@ -70,7 +70,7 @@ Tickets go **only** to `docs/dev/tickets/` (**never** into other subdirectories 
 
 ## Communication (inbox file + herdr doorbell)
 
-Full text in `director/team.md` §1.3. In one line: **bodies go to files, herdr carries only the doorbell**.
+Full text in `dmt-director/team.md` §1.3. In one line: **bodies go to files, herdr carries only the doorbell**.
 
 - Write: `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (project root, **not under `docs/`**; `mkdir -p` as a fallback)
 - Ring: `you have a new message {file}, in inbox/<recipient>/`, using `herdr pane send-text <pane> '<short line>'` followed by `herdr pane send-keys <pane> enter`
@@ -88,6 +88,6 @@ Role-specific:
 
 ## Pointers
 
-- Team contract (single authority): `director/team.md` (this repo; `docs/team.md` once installed); style and discipline in §5 and §6
+- Team contract (single authority): `dmt-director/team.md` (this repo; `docs/team.md` once installed); style and discipline in §5 and §6
 - Input: `docs/pd/spec/` (the director's SPEC); output: `docs/dev/tickets/`
 - Skills: `herdr` (pane control and label resolution), `pi-subagents` (workflow and parallelism), mattpocock `/to-tickets`, `/code-review`, `/diagnosing-bugs`, `/improve-codebase-architecture`
