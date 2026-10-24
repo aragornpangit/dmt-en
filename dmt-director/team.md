@@ -1,346 +1,431 @@
 # dmt Team Contract
 
-> This file is the **single team definition for dmt**: organization, members, communication, file naming, workflow, directory ownership and discipline. The five role skills `dmt-director` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl` (runtime ids `director` / `devm` / `anam` / `devtl{n}` / `anatl{n}`) are implementation notes only; **this file wins on any conflict**.
-> Team members run inside Herdr, a terminal multiplexer for AI agents. Sessions and panes change across restarts; this file does not record pane ids.
+> This file is the **single team definition for dmt**: organization, members, communication, file naming, workflows, directory responsibilities and discipline; the six role skills `dmt-director` / `dmt-pm` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl` (run ids `director` / `pm` / `devm` / `anam` / `devtl{n}` / `anatl{n}`) only provide implementation notes, and **this file prevails in any conflict**.
+> Team members run inside the terminal multi-agent multiplexer Herdr; sessions and panes change across restarts, so this file does not record pane ids.
 
-## 0. Repository layout
+## 0. Repository Structure
 
-The repository root holds one folder per role. The team contract, the repo README and the path checker live with the director under `dmt-director/`, not loose at the root:
+The repo root is divided into folders by role, one directory per role; the team contract, repo notes and machine-check scripts live with the team leader inside `dmt-director/` and are not scattered at the root:
 
 ```
 dmt/
-├── dmt-director/                             # Director, also product manager (skill director)
-│   ├── SKILL.md                          # role skill
-│   ├── team.md                           # team contract (this file, single authority)
-│   ├── README.md                         # repo notes and installation
-│   └── scripts/check-dmt-doc-paths.sh    # output-path checker
+├── dmt-director/                         # Director (skill dmt-director)
+│   ├── SKILL.md                          # Role skill
+│   ├── team.md                           # Team contract (this file, single authority)
+│   ├── README.md                         # Repo notes and installation
+│   └── scripts/                          # Machine checks / file claims / init / create team / open leader / close leader / send message / push / install
+├── dmt-pm/SKILL.md                        # Product manager (pm)
 ├── dmt-dm/SKILL.md                        # Development manager
 ├── dmt-am/SKILL.md                        # Analysis manager
-├── dmt-dtl/SKILL.md                       # Development team lead (devtl{n})
-└── dmt-atl/SKILL.md                       # Analysis team lead (anatl{n})
+├── dmt-dtl/SKILL.md                       # Development leader (devtl{n})
+└── dmt-atl/SKILL.md                       # Analysis leader (anatl{n})
 ```
 
-## 1. Team definition
+## 1. Team Definition
 
-### 1.1 Organization and members
+### 1.1 Organization and Members
 
-**Four levels**: `director` (director) → department manager (`devm` / `anam`) → team lead (`devtl{n}` / `anatl{n}`) → engineer (`dev-e` / `ana-e`). Five role skills, strictly four levels.
-
-**The team-lead level is on demand.** When a manager needs to spread work in parallel it opens a team-lead pane inside **its own tab** (`herdr pane split`, pane label `devtl{n}`); the lead then spawns the engineer sub-agents. The lead pane is closed as soon as its batch is done.
+**Hierarchy**: `director` (director) → department managers (`pm` / `devm` / `anam`) → leaders (`devtl{n}` / `anatl{n}`, **only in development and analysis**) → engineers (`dev-e` / `ana-e` / `pm-e`). The product department has only three levels — `pm` derives `pm-e` sub-agents directly and has no leaders. Six role skills in total.
 
 ```
-director            Director (team lead + product manager, label director)
+director            Director (team leader, label director)
+├── pm                 Product manager (label pm, pane to the right inside director's tab)
+│   └── pm-e           Product engineer (sub-agent, no pane)
 ├── devm               Development manager (label devm)
-│   ├── devtl1         Development team lead (pane label devtl1, inside devm's tab)
+│   ├── devtl1          Development leader (pane label devtl1, inside devm's tab)
 │   │   ├── dev-e       Development engineer (sub-agent, no pane)
 │   │   └── dev-e ...
 │   ├── devtl2 ...
 │   └── devtl{n}
 └── anam               Analysis manager (label anam)
-    ├── anatl1         Analysis team lead (pane label anatl1, inside anam's tab)
+    ├── anatl1          Analysis leader (pane label anatl1, inside anam's tab)
     │   ├── ana-e       Analysis engineer (sub-agent, no pane)
     │   └── ana-e ...
     └── anatl{n}
 ```
 
-| Role | Full name | Skill name | Runtime id (pane label) | Reports to | Direct reports | Responsibility |
+| Role | Full name | Skill name | Run id (pane label) | Direct superior | Direct reports | Responsibilities |
 |---|---|---|---|---|---|---|
-| Director (team lead + product manager) | TeamLeader + ProductManager | `dmt-director` | `director` | Human | `devm`, `anam` | Single user entry point; take requirements, set acceptance criteria, write PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
-| Development manager | DevelopManager | `dmt-dm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director review |
-| Analysis manager | AnalystManager | `dmt-am` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate the research report |
-| Development team lead | DevelopLeader | `dmt-dtl` | `devtl{n}` | `devm` | `dev-e` (sub-agent) | Spawned on demand by the manager; create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to devm |
-| Analysis team lead | AnalystLeader | `dmt-atl` | `anatl{n}` | `anam` | `ana-e` (sub-agent) | Spawned on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify primary sources, report to anam |
+| Director (team leader) | TeamLeader | `dmt-director` | `director` | User | `pm`, `devm`, `anam` | Sole user entry point; takes requirements and acceptance criteria, dispatches, arbitrates across departments, creates and maintains manager-level pane/tab; **release** (push after spot check) and **install**; does not replace pm's document review or devm's code review |
+| Product manager | ProductManager | `dmt-pm` | `pm` | `director` | `pm-e` (sub-agent) | Writes PRD, SPEC ([`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md)), development tickets ([`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md)), human architecture and human plan; **document gate**: review owner for PRD / SPEC / tickets; uses sub-agents in parallel for product fact-finding and verification |
+| Development manager | DevelopManager | `dmt-dm` | `devm` | `director` | `dev-e` (self-dispatch when ≤4) or `devtl{n}` (>4) | Takes tickets (pm's ticket), schedules and assigns work, **code gate**: review owner for ticket code; integrates development department deliverables; **does not split tickets and does not push** (install and push belong to director) |
+| Analysis manager | AnalystManager | `dmt-am` | `anam` | `director` | `ana-e` (self-dispatch when ≤2) or `anatl{n}` (>2) | Takes research requests; chooses between self-dispatching sub-agents and opening leader panes based on queue depth; verifies sources and closes out research reports |
+| Development leader | DevelopLeader | `dmt-dtl` | `devtl{n}` | `devm` | `dev-e` (sub-agent) | Creates worktrees, dispatches development engineers concurrently, collects diffs for an implementation-level first pass, reports back to devm |
+| Analysis leader | AnalystLeader | `dmt-atl` | `anatl{n}` | `anam` | `ana-e` (sub-agent) | Decomposes sub-questions, dispatches analysis engineers for parallel evidence gathering, verifies primary sources, summarizes and reports back to anam |
 
-**Three naming layers (never mixed)**: (1) **skill name** `dmt-dm` — used by the skill registry, the install directory and the `/dmt-dm` command; (2) **runtime id** `devm` — used by pane labels, inbox folders, direction codes and instance numbers; (3) **display name** Development manager — used by prose, reports and logs. Example: the command is `/dmt-dtl`, the path is `inbox/devtl1/`, and the prose says "lead 1 reported …".
+**Three-layer naming (do not mix them)**: ① **skill name** `dmt-dm` — used by the skill registry, install directory and the `/dmt-dm` command; ② **run id** `devm` — used by pane labels, inbox directories, direction codes and instance numbers; ③ **form of address** Development Manager — used in prose, reports and logs. Example: the command is written `/dmt-dtl`, the path is written `inbox/devtl1/`, the prose is written "Development Leader 1 reports: …".
 
-**Single-line command (hard rule; no role may skip a level or connect sideways):**
+| Skill name | Run id | Form of address | Instance address |
+|---|---|---|---|
+| `dmt-director` | `director` | Director | — |
+| `dmt-pm` | `pm` | Product manager | — |
+| `dmt-dm` | `devm` | Development manager | — |
+| `dmt-am` | `anam` | Analysis manager | — |
+| `dmt-dtl` | `devtl{n}` | Development leader | Development Leader 1, Development Leader 2 … |
+| `dmt-atl` | `anatl{n}` | Analysis leader | Analysis Leader 1, Analysis Leader 2 … |
+| — | `dev-e` | Development engineer | By number, e.g. "Engineer 3" |
+| — | `ana-e` | Analysis engineer | By number, e.g. "Engineer 3" |
+| — | `pm-e` | Product engineer | By number, e.g. "Product Engineer 2" |
 
-1. `director` commands **only** `devm` and `anam`; **must not** task or receive from `devtl{n}` / `anatl{n}` / engineers directly.
-2. `devm` **only** commands `devtl{n}`; it **must not** task `dev-e` directly, nor receive reports from dev-e directly.
-3. `anam` **only** commands `anatl{n}`; it **must not** task `ana-e` directly, nor receive reports from ana-e directly.
-4. A team lead reports **only** to its own department manager. `devtl{n}` and `anatl{n}` never connect to each other, nor do devm and anam; cross-department matters go through `director`.
-5. Engineers `dev-e` / `ana-e` report **only** to the team lead that spawned them; they carry **no standalone skill**, **no pane** and **no cross-pane communication** (discipline lives in the dispatch prompt).
+**Single-line command (hard constraint: no role may skip levels or connect laterally):**
 
-### 1.2 Runtime and pane lifecycle
+1. `director` **only** commands `pm`, `devm`, `anam` directly; it **must not** assign or collect work across levels from `devtl{n}` / `anatl{n}` / engineers.
+2. `pm` **only** commands `pm-e` (sub-agent) directly and reports to `director`; it **must not** contact `devm` / `anam` / leaders / any engineer.
+3. `devm` **only** commands `devtl{n}` directly, or **derives `dev-e` sub-agents itself when queued tasks ≤4**; `anam` follows the same rule but with a threshold of **≤2** (`anatl{n}` / self-dispatched `ana-e`).
+4. Leaders report **only** to their own department manager; `devtl{n}` and `anatl{n}` **never connect directly**, and neither do `pm` / `devm` / `anam` among themselves — cross-department matters are relayed through `director`.
+5. Engineers `dev-e` / `ana-e` / `pm-e` report **only** to the manager or leader who derived them, **do not install standalone skills** (skills are written into the dispatch prompt, see §1.4), **do not occupy panes**, and **do not use cross-pane communication**.
 
-**Identity is the pane label — not a position, not a tab.** Every role occupies one **pane**, and the pane label equals the role or instance name (`director` / `devm` / `anam` / `devtl{n}` / `anatl{n}`), **unique within the workspace**.
+### 1.2 Runtime Environment and Pane Lifecycle
 
-- **A tab is only a visual grouping**: `director` / `devm` / `anam` each occupy one tab, and the tab label matches the owner's pane label. **A team lead creates no tab**: its pane lives inside **its department manager's tab** (`devtl{n}` in `devm`'s tab, `anatl{n}` in `anam`'s tab).
-- **Peers are identified by pane label** (filter `label` from `herdr pane list`), **never by position inside a tab and never by remembered pane id**: pane ids drift across restarts, and pane order changes on `pane swap` / `pane move` (measured: after a swap the `pane list` order flips immediately). **Only the label is stable.**
-- **Engineers remain sub-agents**: `dev-e` / `ana-e` occupy no pane, carry no skill and do no cross-pane communication.
-- **Startup order**: the user prepares the `director` tab and starts its harness; **the director creates the `devm` and `anam` tabs and labels each root pane with the same name**, then asks the user to start the harness in each of those tabs.
-- **Team leads are spawned on demand and closed on completion**: the manager opens a lead pane **inside its own tab** with `pane split` and labels it. `{n}` increases monotonically from 1; **a closed number is never reused**; closing rules are at the end of this section.
-- **Capacity**: every extra lead pane halves the manager's own width (on a 118-column terminal, two panes give 59 columns each and three give about 39). **Keep at most two leads per tab** as a rule of thumb; beyond that, split the batch or temporarily `herdr pane zoom` one pane.
+**Identity = pane label, not position, not tab.** Every resident role occupies one **pane** (engineers are sub-agents and occupy no pane); the pane label matches the role/instance name (`director` / `pm` / `devm` / `anam` / `devtl{n}` / `anatl{n}`) and is **unique** within the workspace.
+
+- **A tab is only a visual grouping**: `devm` / `anam` each occupy one tab, whose label matches their own pane label; **`pm` occupies no tab** — its pane opens **inside `director`'s tab, to the right of the director pane**; **leaders do not create tabs** — their panes open **inside their own department manager's tab** (`devtl{n}` in `devm`'s tab, `anatl{n}` in `anam`'s tab).
+- **Always identify partners by pane label** (`herdr pane list` filtered on `label`), **never by position within a tab and never by remembered pane id**: pane ids change across restarts, pane order changes with `pane swap` / `pane move` (measured: after a swap the `pane list` order flips immediately), **only the label is stable**.
+- **Engineers are still sub-agents**: `dev-e` / `ana-e` / `pm-e` occupy no pane, install no skills (skills are delivered with the dispatch prompt), and use no cross-pane communication.
+- **Team startup order (director brings up the manager layer fully automatically)**: the user first prepares a `director` tab and starts the harness in it; **the director's first act is to name itself — first change the tab label to `director`, then change the pane label to `director` (the order must not be reversed)**. Then the director **splits a `pm` pane on the right** (`pane split <director pane> --direction right`; herdr 0.9.5 has no `pane create`, so the equivalent of creating a pane is splitting), then **creates the `devm` and `anam` tabs and labels each root pane with the same name**. All three panes are started **on their behalf** by the director (`pane send-text 'codebuddy --permission-mode auto'` + `send-keys enter`, readiness check `wait-output --source visible --match 'auto mode on'`), and once ready the role slash commands **`/dmt-pm`** (pm pane), **`/dmt-dm`** (devm pane) and **`/dmt-am`** (anam pane) are entered to load the role skills. **Do not ask the user to start the harness manually in the manager tabs**; manager panes likewise do not go through the `shift+Tab` permission-mode switching routine (the start command already carries `--permission-mode auto`).
+- **The director exclusively creates and maintains them**: the panes, tabs and labels of `pm` / `devm` / `anam` are created only by the director and changed only by the director; before starting work, inspect the three labels and on absence/drift run `pane rename` or recreate the pane and repeat "start on behalf + enter skill command". Subordinates **must not** create or rename their own panes/tabs.
+- **The director's tab contains two panes** (director + pm) ⇒ **`herdr tab close` is forbidden**: closing the tab kills pm and the director itself along with it; only panes may be closed, and the director does not close pm (pm is resident).
+- **Leaders are created by queue depth and closed when done**: managers open a leader pane with `pane split` **inside their own tab** and label it **only when queued tasks exceed the threshold** (**below the threshold the manager derives engineer sub-agents itself and opens no pane**); numbering increases monotonically from 1 and **closed numbers are never reused**; **thresholds: `devm` >4, `anam` >2**; closing rules are in "Closing leader instances (close when done)" at the end of this section.
+- **Capacity**: leader panes **stack vertically in one column on the right** ⇒ each added leader **divides the height of that right-hand column** (the manager pane width is unchanged). **No more than 3 leaders per tab** is recommended; for more, work in batches, or temporarily enlarge a single pane with `herdr pane zoom`.
 
 ```bash
-# resolve by pane label (match on label text, never copy a historical pane id)
+# Resolve by pane label (trust the label text, do not copy historical pane ids)
 HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
-  | jq -r --arg l "<role name>" '.result.panes[] | select(.label==$l) | .pane_id'
+  | jq -r --arg l "<role-name>" '.result.panes[] | select(.label==$l) | .pane_id'
 ```
 
-If the target label is absent: **stop and ask the user**. Do not guess a pane id and do not retry against a session that does not exist.
-**Migration fallback** (only while labels are missing): if a tab with the same label exists and holds exactly one pane, use that pane; otherwise still stop and ask the user.
+If the target label does not exist: **stop and ask the user**; do not guess a pane id and do not retry repeatedly against a nonexistent session.
+**Migration fallback** (only when the label is missing): if a tab with the same name exists and that tab has exactly one pane, use that pane; otherwise still stop and ask the user. **`pm` is the exception**: it shares a tab with `director` and that tab always has two panes, so the tab fallback **must not** be used — resolve by label or ask the user to recreate.
 
-**Identity self-heal** (the first thing every role does after start): read `herdr pane get "$HERDR_PANE_ID"`; if the label does not match the role name (including empty), immediately run `herdr pane rename "$HERDR_PANE_ID" <role name>`. A team lead **must not** identify itself through `herdr tab list` — that tab label belongs to its manager.
+**Identity self-healing** (the first act of every role after startup): if the label read from `herdr pane get "$HERDR_PANE_ID"` does not match the role name (including empty), immediately run `herdr pane rename "$HERDR_PANE_ID" <role-name>`. Leaders and `pm` **must not** identify themselves via `herdr tab list` — their tab labels belong to their superiors (leaders sit in the manager tab, pm in the director tab).
 
-Create a pane:
+**Creating panes (use scripts, do not type by hand)**:
 
 ```bash
-# (1) manager tab (created by the director): label the root pane with the same name right away
-tab_json=$(HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label devm)
-pane=$(echo "$tab_json" | jq -r '.result.root_pane.pane_id')
-HERDR_ENV=1 herdr pane rename "$pane" devm
+# director: name itself (tab→pane) + create pm/devm/anam + start on their behalf + enter role skills (idempotent)
+bash dmt-director/scripts/setup-team.sh
 
-# (2) team-lead pane (created by the manager): append it to the right of the manager's own tab,
-#     no focus steal, no new tab
-pane=$(HERDR_ENV=1 herdr pane split "$HERDR_PANE_ID" --direction right --cwd "$PWD" --no-focus \
-  | jq -r '.result.pane.pane_id')
-HERDR_ENV=1 herdr pane rename "$pane" devtl1
+# manager: open a leader pane (1st to the right of the manager, from the 2nd downward below the previous leader) + start on its behalf + enter leader skill
+bash dmt-director/scripts/spawn-leader.sh devm 1
+bash dmt-director/scripts/spawn-leader.sh anam 1
+
+# manager: close a leader pane (refuses if the inbox has unread messages; add --force to force)
+bash dmt-director/scripts/close-leader.sh devm 1
 ```
 
-**Bringing a lead pane into role** (started by the creator; never handed to the user):
+Inside, the scripts still use `herdr pane split/rename/send-text/send-keys/wait-output` plus label idempotency checks and readiness waits; `--dry-run` only prints commands, `--no-start` only creates the pane without starting the harness. **Layout can only be set correctly at split time**: measured, `pane move` within the same tab returns `changed:false`／`reason:same_tab`, so the scripts fix "1st right, subsequent down".
 
-```bash
-HERDR_ENV=1 herdr pane send-text "$pane" 'codebuddy --permission-mode auto'
-HERDR_ENV=1 herdr pane send-keys "$pane" enter
-# wait for readiness: --source visible avoids matching stale scrollback
-HERDR_ENV=1 herdr pane wait-output "$pane" --source visible --match 'auto mode on' --timeout 60000
-```
+**Getting a leader pane into role**: done by `spawn-leader.sh` as well (start on its behalf → wait for `auto mode on` → enter `/dmt-dtl` or `/dmt-atl`). Once ready, the creator delivers the first task (role name, skill name, direct superior's label, task file path) and verifies with `pane read` that the input box is cleared.
 
-Once ready, the creator delivers the first task (role name, skill name, manager's label, task file path) and verifies with `pane read` that **the input box is empty** — that is what counts as delivered (`enter` is often swallowed; just send it again).
+**Before delivering the first task, the permission mode must be switched first (only for sessions the user started manually).** The order must not be reversed:
 
-**Switch the permission mode before delivering the first task (sessions started by the user only).** The order cannot be reversed:
+1. after the harness starts and **before the first message is sent**, press `shift+Tab` to switch to `auto mode`;
+2. read the bottom of the pane once and **confirm `auto mode on` appears**;
+3. then deliver the first task.
 
-1. after the harness starts and **before the first message**, press `shift+Tab` to switch to `auto mode`;
-2. read the bottom of the pane once and **confirm `auto mode on` is visible**;
-3. only then deliver the first task.
+**Why it must happen before the first message**: once a session starts the permission mode is locked, and switching later raises `Mode cannot be changed after the conversation starts`. The only remedy afterwards is `/clear` and a restart, which loses the running engineer sub-agents and the context already produced.
 
-**Why it must happen before the first message**: once the conversation starts the permission mode is locked, and switching later fails with `Mode cannot be changed after the conversation starts`. The only remedy is `/clear` and a restart, which throws away the engineer sub-agents already running and the context already built.
+> Distinguish two things: `/agent-mode` (PTC / normal mode) cannot be changed after the session starts and is unrelated to this section; this section is about the **permission mode** cycled by `shift+Tab`. The two do not affect each other — a PTC session can also enable `auto mode`.
 
-> Do not confuse two different things: `/agent-mode` (PTC vs normal) cannot change after a session starts and is unrelated to this section; this section is about the **permission mode** cycled by `shift+Tab`. They are independent, and a PTC session can also run `auto mode`.
+**The cost of missing it**: the leader stalls on dialogs such as `High risk operation detected - requires confirmation every time`, waiting for a human, even though such dialogs often cover nothing more than routine build commands like `cmake` / `ctest`.
 
-**Cost of skipping it**: the team lead stalls on pop-ups such as `High risk operation detected - requires confirmation every time`, which often guard nothing more than `cmake` / `ctest`.
+> **Leader panes started on their behalf by the creator do not go through this routine**: the start command already carries `--permission-mode auto`, so there is no "locked after the session starts" window; **do not** press `shift+Tab` again (pressing it would switch away instead).
 
-> **A lead pane started by its creator skips this flow**: the launch command already carries `--permission-mode auto`, so there is no "locked once the conversation starts" window. **Do not** press `shift+Tab` there — pressing it cycles the mode away.
+#### Closing Leader Instances (close when done)
 
-#### Closing a team-lead instance (close on completion)
+Only leaders are **on-demand instances**; the panes of `pm` / `devm` / `anam` (`pm`'s pane sits in the director tab) are **resident** and are not closed with batches.
 
-Only team leads are **on-demand instances**; the `devm` / `anam` panes and tabs are **permanent** and are never closed with a batch.
+- **Owner**: **the creator itself** — `devm` closes `devtl{n}`, `anam` closes `anatl{n}`. Herdr's safety rule is "do not close panes/tabs you did not create", so the director and other roles **must not close them on someone's behalf**.
+- **Timing**: after **all tasks of the current batch for that leader are closed out** and the creator **confirms there is no next batch to assign**. **Reusable within a batch** (multiple tickets/questions in the same batch may go to the same leader, no need to create one per ticket), **not retained across batches** — close when the batch ends; the next batch creates a new one with a new number.
+- **Three preconditions for closing (fixed order, none may be skipped)**: ① that leader's report (including per-item criteria readings / primary sources) has been merged into the ticket or report; ② the worktree under that leader (if any) has been `git worktree remove`d, with no leftover working tree; ③ `inbox/<creator>/` holds no unread messages from that leader.
+- **Command and success criterion**: `bash dmt-director/scripts/close-leader.sh devm 1` (use `anam` for anam). The script resolves the pane by label, checks whether the inbox is empty (refuses if not, requires `--force`), and treats the label disappearing from `herdr pane list` as success.
+- **`herdr tab close` is forbidden**: leader panes share the manager's tab, and closing the tab would kill the manager itself (along with the batch's other leaders). Only panes may be closed.
+- **Risk clause**: closing a pane terminates the agent session inside it — **context is unrecoverable and the action is irreversible** ⇒ **never close before collecting**; closing must happen **after** the report is booked and the worktree is reclaimed.
+- **Numbering**: closed numbers are **never reused** (§2 rule 5); after closing, report to the user in one sentence (which instance was closed and why).
 
-- **Owner**: **the creator itself** — `devm` closes `devtl{n}`, `anam` closes `anatl{n}`. Herdr's safety rule is "never close a pane or tab you did not create", so the director and other roles **must not close on someone's behalf**.
-- **Timing**: after **every task of that team lead's batch is closed out** and the creator **confirms there is no next batch to dispatch**. **Reusable within one batch** (several tickets or sub-questions of the same batch may go to the same lead; no need to create one per ticket), **never carried across batches** — the batch ends, the tab closes, and the next batch starts a new number.
-- **Three preconditions, fixed order, none optional**: (1) the lead's report (with per-criterion readings / primary sources) is folded into the ticket or report; (2) every worktree under that lead is removed with `git worktree remove` and no workspace is left behind; (3) `inbox/<creator>/` holds no unread message from that lead.
-- **Command and success criterion**:
+### 1.3 Communication (inbox files + herdr doorbell)
 
-```bash
-# 1) resolve the current pane from the label (never copy a historical id)
-tl=$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
-  | jq -r '.result.panes[] | select(.label=="devtl1") | .pane_id')
-# 2) close; success criterion = the label is gone from pane list
-HERDR_ENV=1 herdr pane close "$tl"
-```
+**All prose goes through files; herdr only rings a one-line doorbell.** Dispatch, reports, review conclusions, arbitration requests and defect returns are all first written as a file in the recipient's inbox, and only then is a single line "you have a new message <filename>" typed via herdr. **Messages carry no long prose, no logs and no diffs.**
 
-- **`herdr tab close` is forbidden**: a lead pane shares its manager's tab, so closing the tab would kill the manager itself (and every other lead in the batch). Only panes may be closed.
-- **Risk clause**: closing a pane terminates that agent's session; **context cannot be recovered and the action cannot be undone** ⇒ **never close before collecting**; closing must happen after the report is filed and the worktree is reclaimed.
-- **Numbering**: a closed number is **never reused** (§2 rule 5); after closing, report to the user in one line (which instance, why).
+**The only permitted direct communication is the superior-subordinate line** (everything else is relayed through a superior):
 
-### 1.3 Communication (inbox file + herdr doorbell)
-
-**All bodies travel as files; herdr carries one doorbell line only.** Dispatch, reports, review verdicts, arbitration requests and defect returns all become a file in the receiver's inbox first, then herdr rings once with "you have a new message <file>". **Never paste long bodies, logs or diffs into the message.**
-
-**Direct communication is allowed only along the reporting line** (everything else is relayed by the manager):
-
-| From | To | Direction code |
+| Sender | Recipient | Direction code |
 |---|---|---|
-| `director` | `devm` / `anam` | `director2devm` / `director2anam` |
-| `devm` / `anam` | `director` | `devm2director` / `anam2director` |
+| `director` | `pm` / `devm` / `anam` | `director2pm` / `director2devm` / `director2anam` |
+| `pm` / `devm` / `anam` | `director` | `pm2director` / `devm2director` / `anam2director` |
 | `devm` | `devtl{n}` | `devm2devtl{n}` |
 | `devtl{n}` | `devm` | `devtl{n}2devm` |
 | `anam` | `anatl{n}` | `anam2anatl{n}` |
 | `anatl{n}` | `anam` | `anatl{n}2anam` |
 
-**Step 1 — locate the peer** (re-resolve every time; never reuse a pane id): `herdr pane list` gives the **current** pane id for a **pane label** (the label equals the role name and is unique in the workspace). Label missing ⇒ **stop and ask the user**; do not guess a pane id and do not fall back to a position inside a tab.
+**Step 1 Locate the partner** (rerun every time; never reuse the previous pane id): `herdr pane list`, take the **current** pane id by **pane label** (the label matches the role name and is unique in the workspace). If the label is not in the list ⇒ **stop and ask the user**; do not guess a pane id and do not fall back to position within a tab.
 
-**Step 2 — write the inbox file**
+**Step 2 Write the inbox file**
 
-- Path: `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` at the **project root** (`<recipient>` ∈ `director` / `devm` / `anam` / `devtl{n}` / `anatl{n}`; **not under `docs/`**; `mkdir -p` if missing).
-- `{seq}`: per-sender running number from 001, one number per message (unrelated to the SPEC `spec-seq`).
-- `{direction}`: from the table above; cross-department traffic is relayed by the director, so `devm2anam` / `devtl2anatl` never appear.
-- `{slug}`: short lowercase English with hyphens, at most 5 words.
-- `{YYMMDDHHMM}`: timestamp at write time, two-digit year + month + day + hour + minute, no separators (e.g. `2610201430`).
-- Body is **self-contained**: one-line summary / authoritative document paths / requested action / expected output / reporting requirements.
+- Path: `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` under the **project root** (`<recipient>` ∈ `director` / `pm` / `devm` / `anam` / `devtl{n}` / `anatl{n}`; **not under `docs/`**; `mkdir -p` first if the directory is missing)
+- `{seq}`: self-accumulating serial number starting at 001, one number per message (unrelated to the SPEC `spec-seq`)
+- `{direction}`: see the table above; cross-department matters are relayed by the director, so codes such as `devm2anam` / `devtl2anatl` never appear
+- `{slug}`: lowercase English with hyphens, no more than 5 words
+- `{YYMMDDHHMM}`: write time, two-digit year + month + day + hour + minute, no separators (e.g. `2610201430`)
+- The body is **self-contained**: one-sentence summary / authoritative document path / requested action / expected output / reporting requirements
 
-**Step 3 — ring the doorbell** (pick the channel by the **peer harness**; the message is one line: file name + folder):
+**Use the script**: `bash dmt-director/scripts/send-msg.sh <recipient> <self> <slug> <body-file>` — it computes `{seq}`, the timestamp and the direction code automatically, writes the file and then rings the doorbell by label (falls back to `send-text` + `send-keys` when `agent prompt` returns something other than `agent_prompted`; when the label does not exist it only writes the file and warns).
+
+**Step 3 Ring the doorbell** (pick the channel by **peer harness**; the message is a single sentence: filename + directory)
 
 | Peer harness | Doorbell |
 |---|---|
-| pi-coding-agent / codex / opencode | `HERDR_ENV=1 herdr agent prompt <pane or registered agent name> 'you have a new message {file}, in inbox/<recipient>/'` |
-| codebuddy (cbc) | `HERDR_ENV=1 herdr pane send-text <pane> 'you have a new message {file}, in inbox/<recipient>/'` followed by `HERDR_ENV=1 herdr pane send-keys <pane> enter` |
+| **codebuddy / pi-coding-agent / codex / opencode2 / opencode** | Prefer `HERDR_ENV=1 herdr agent prompt <pane> 'you have a new message {filename}, in inbox/<recipient>/'` (**one call submits with Enter built in**; a return of `"type":"agent_prompted"` means delivered; **the codebuddy pane works the same way**, measured 2026-10-24) |
+| Fallback (**only when** the peer is another harness, or `agent prompt` returns something other than `agent_prompted`) | `HERDR_ENV=1 herdr pane send-text <pane> '…'` immediately followed by `HERDR_ENV=1 herdr pane send-keys <pane> enter`, then verify with `pane read` that the input box is cleared |
 
-Before sending, **read the target pane first** (`herdr pane read`). If the peer's input box holds unsubmitted user text, do not inject; wait or ask the user to relay.
+**Read the target pane first** (`herdr pane read`) before sending; if the peer's input area holds unsubmitted user content, do not inject — wait or ask the user to relay.
 
-**Step 4 — receiver handling**
+**Step 4 Recipient processing**
 
-1. On the doorbell alert (new mail in the inbox), read the new file under `inbox/<self>/` and **load it into your context window** for processing.
-2. **Do not send a receipt**: after reading, process it; do **not** send `{file} received` or any acknowledgement message.
-3. **Delete the file once read** (the inbox only holds unread messages).
-4. To reply with a body, write a file the same way in reverse and ring the doorbell; never stuff the body into the doorbell line.
+1. On the doorbell reminder (new mail in the inbox), read the new files under `inbox/<self>/` and **load them into your own context window** for processing;
+2. **Do not send acknowledgements**: the recipient processes as soon as it has read, **does not reply** "`{filename}` received" and sends no confirmation of any kind;
+3. **Delete the file once read** (the inbox may only hold unread messages);
+4. To reply with prose, write a file in the opposite direction and ring the doorbell under the same rules; do not stuff long prose into the doorbell message.
+5. **For any operation longer than 10 minutes (merge / build / long hardware run / batch verification), scan the inbox once before starting and once after finishing.** Not checking the inbox during a long operation is a **known way to miss messages**, not an accident.
+   - **Why**: on 2026-10-23 devm ran the T6 merge verification from 16:00–16:45 (run ctest on the branch → compose the conflict by hand → run ctest again after merging) and did not check the inbox in between; one arbitration letter from the director (037) and three gap reports from TL1 (042/043/044) sat there for 2.5 hours. **The letters were not lost and the doorbells were delivered — the recipient simply cannot see doorbells while working.**
+   - **How to apply**: treat "scan the inbox" as a **pre- and post-step** of an operation, not as a standalone task; when scanning, just look at `ls inbox/<self>/` and handle any file on the spot — **do not let them pile up**. The cost of piling up: you keep deciding on stale state while the other side assumes you already know.
 
-**Delivery proof**: the sender treats a successful doorbell as "delivered" (`agent prompt` returns `{"type":"agent_prompted"}`, or `send-text + send-keys` returns exit 0). **The receiver sends no receipt**, so delivery is no longer proven by an ack. If the sender is unsure whether the message was read, **ask the user verbally**; do not re-send blindly.
+**Delivery criterion**: `herdr agent prompt` returning `"type":"agent_prompted"` counts as "delivered"; on the fallback channel, `send-text + send-keys` returning exit 0 **and** `pane read` showing the prose counts as "delivered"; **the recipient does not acknowledge**, so acknowledgements are no longer used as the criterion. When the sender is unsure whether the message was read, **ask the user verbally** rather than re-delivering.
 
-**Not versioned**: the inbox is a runtime channel, not a deliverable; a served project's `.gitignore` must contain `inbox/*/`.
+**Not committed**: the inbox and `locks/` are runtime channels, not deliverables; the served project's `.gitignore` must contain `inbox/*/` and `locks/`.
 
-### 1.4 Required harness skills (mattpocock)
+### 1.4 Dependent harness skills (mattpocock, mandatory)
 
-The team depends on mattpocock's skills (`tdd` / `code-review` / `to-spec` / `to-tickets` / `research` / `grilling` and friends).
-**Check**: the skills are visible in the current harness's skill directory (the user-level shared location is usually `~/.agents/skills/mattpocock-skills`, for reference only, not a hard criterion).
+**Mandatory wording**: the skills in the table below are **not optional suggestions** — every role **must** invoke them in its duty actions, and **must not** silently skip them on the grounds of "writing it by hand is faster" or "the skill is not installed". Skill unavailable ⇒ install it as described at the end of this section; still unavailable ⇒ mark `[SKILL_UNAVAILABLE]` in the deliverable and the report and report to the director, who decides (**no silent degradation**). **Calls must leave a trace**: the report states which skill was used and which file the output landed in.
 
-If missing, proceed in order:
+| Role | Mandatory skills | Where used |
+|---|---|---|
+| `director` | [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)、[`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md)、[`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md)、[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md) | Interrogate the acceptance criteria when taking requirements; self-review of plans; cross-examining contract and documents; spot-checking code |
+| `pm` | [`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md)、[`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md)、[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)、[`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md)、[`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md) | SPEC, development tickets, requirement clarification and open-question exploration, document gate self-assessment and cross-examination |
+| `devm` | [`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md)、[`/diagnosing-bugs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/SKILL.md) | Self-review before integration review; defect triage and regression localization |
+| `devtl` | [`/tdd`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md)、[`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md)、[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md)、[`/diagnosing-bugs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/SKILL.md) | Implementation, pre-commit self-review, red-gate localization |
+| `anam` | [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md)、[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)、[`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md)、[`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md) | Evidence methods and evidence grading, sub-question decomposition and disproof, research plan self-review, cross-examining evidence and documents |
+| `anatl` | [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md)、[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)、[`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md)、[`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md) | Evidence methods and evidence grading, sub-question decomposition and disproof, plan self-review and cross-examination |
+| `pm-e` | [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)、[`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md) | Criteria verification, product fact-finding (**written into the dispatch prompt**) |
+| `dev-e` | [`/tdd`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md)、[`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md)、[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md) | Implementation and commit (**written into the dispatch prompt**) |
+| `ana-e` | [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md)、`/rea`、[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md) | Evidence gathering (including REA reverse engineering) and disproof (**written into the dispatch prompt**) |
+
+**Naming and source files**: the skill names in the table above are **verbatim identical** to the upstream directory names in [`mattpocock/skills`](https://github.com/mattpocock/skills) (paths look like `skills/<category>/<name>/SKILL.md`), and every link points to the source file on `raw.githubusercontent.com`. `/rea` (REA, competitor reverse engineering) **does not belong to** mattpocock/skills; it keeps its original name and gets no link.
+
+**Common skill (all pane-resident roles)**: `cbc-herdr` — CodeBuddy status reporting inside herdr (`working` / `idle` / `blocked`), which makes `agent_status` in `herdr pane list` trustworthy; all six skills `director` / `pm` / `devm` / `anam` / `devtl` / `anatl` **must register it**. Engineers are sub-agents occupying no pane and do not need it.
+
+**Check**: these skills are visible in the current harness's skill directory (the user-level shared location is usually `~/.agents/skills/mattpocock-skills`; for reference only, not a hard criterion).
+
+If they are not installed, proceed in order:
 
 ```bash
-# preferred: install per harness (pi / opencode / codebuddy / amp / cursor / devin / windsurf; omit -a to choose interactively)
+# Preferred: install per harness (pi / opencode / codebuddy / amp / cursor / devin / windsurf; omit -a to choose interactively)
 npx skills@latest add mattpocock/skills -a <agent>
-# fallback (when the prompt-based install fails): clone the source, copy the skill folders under skills/ into ~/.agents/skills/, then symlink them into the harness skill directory
+# Fallback (when the prompt-based install fails): clone the source, copy the skill directories under skills/ into ~/.agents/skills/, then symlink them into the harness skill directory
 git clone https://github.com/mattpocock/skills.git
 ```
 
-Known gaps (checked 2026-10): upstream `mattpocock/skills` has **no `to-prd`**, and `implement-spec` is still unpublished under `in-progress/`. The director writes the PRD by hand from the template in §4; if upstream ships `to-prd` later, prefer it.
+Known gaps (checked 2026-10): upstream `mattpocock/skills` **has no `to-prd`**, and `implement-spec` is still unpublished under `in-progress/`. pm writes the PRD by hand following the §4 template in this file; if upstream later provides `to-prd`, prefer it.
 
-## 2. File naming (authoritative)
+### 1.5 File Claims (must check before editing)
 
-Sequence numbers are independent per output category and accumulate within the category (from 001): `{prd-seq}` (PRD), `{research-seq}` (research report), `{human-arch-seq}` (human architecture), `{human-plan-seq}` (human plan), `{spec-seq}` (shared by SPEC and ticket); inbox messages use a separate `{seq}` message number. `{slug}` is a short semantic name (lowercase English with hyphens, at most 5 words); `{YYMMDD-HHMM}` is date and time; `v{N}` is the version of the same file updated in place.
+**Model reference: Orca**: Orca's approach is to first see "who is active in this worktree / terminal" and only then decide whether it may act; it has no file-level lock API, and dmt runs on herdr, so this team adds a layer of **file-level claim registration** on top of "look at active sessions".
 
-| Output | Directory | File name |
+**Hard rule: before editing (writing / appending / deleting) any file, every role must `check` first; it may change the file only once the claim is held; and it must `release` immediately after the change.**
+
+```bash
+bash dmt-director/scripts/file-claim.sh check   <path> <owner>   # rc=0 writable; rc=3 claimed by someone else
+bash dmt-director/scripts/file-claim.sh claim   <path> <owner>   # register claim (repeated call = renewal)
+bash dmt-director/scripts/file-claim.sh release <path> <owner>   # release (only the holder can release)
+bash dmt-director/scripts/file-claim.sh list                     # show all claims
+```
+
+- `<owner>` is written as "role:instance", e.g. `pm`, `devm`, `devtl1`, `dev-e3`.
+- Records land in `locks/` at the project root (runtime channel, **not committed**, `.gitignore` contains `locks/`).
+- **rc=3 ⇒ stop**: wait for the other side to release, work on another file, or report to your superior for coordination; **do not bypass it and do not delete someone else's lock**.
+- **TTL defaults to 30 minutes**: an expired lock is considered preemptable, and preemption must be stated in the report as "taking over expired lock `<path>` (previous holder `<owner>`)". Tasks running longer than 30 minutes re-`claim` to renew before wrapping up.
+- **Extra Orca check**: when `orca status` is reachable, run `orca worktree ps` before editing to see whether an agent with `live:>0` exists in the same worktree; if so, state "the same worktree has an active session and no conflict was confirmed" in the report before acting.
+- **Exception**: message files in `inbox/` are created by the sender and deleted by the recipient and **do not go through claim registration** (filenames contain seq and timestamp, so they cannot collide by construction); `locks/` itself is not registered either.
+- **A worktree is not an exemption**: one ticket per worktree only guarantees branch isolation; the same worktree may still have several writers (leader + engineers), so claims are still required.
+
+## 2. File Naming Convention (authoritative)
+
+Sequence numbers are independent per deliverable category and accumulate within the category (starting at 001): `{prd-seq}` (PRD), `{research-seq}` (research report), `{human-arch-seq}` (human architecture), `{human-plan-seq}` (human plan), `{spec-seq}` (shared by SPEC and tickets); inbox messages use a separate `{seq}` message serial. `{slug}` is a short semantic slug (lowercase English with hyphens, no more than 5 words), `{YYMMDD-HHMM}` is the date and time, and `v{N}` is the version number for in-place upgrades of the same file.
+
+| Deliverable | Directory | Filename |
 |---|---|---|
 | Research report | `docs/analyst/` | `{research-seq}-research-{slug}-{YYMMDD-HHMM}--v{N}.md` |
-| Product requirements (PRD) | `docs/pd/prd/` | `{prd-seq}-prd-{slug}-{YYMMDD}-v{N}.md` |
+| Product requirements document (PRD) | `docs/pd/prd/` | `{prd-seq}-prd-{slug}-{YYMMDD}-v{N}.md` |
 | Specification (SPEC) | `docs/pd/spec/` | `{spec-seq}-spec-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Development ticket | `docs/dev/tickets/` | `{spec-seq}-ticket-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Human architecture | `docs/human/human-arch/` | `{human-arch-seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md` |
 | Human plan | `docs/human/human-plan/` | `{human-plan-seq}-plan-{slug}-{YYMMDD-HHMM}--v{N}.md` |
-| Inbox message | `inbox/<recipient>/` | `{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (no version, deleted once read) |
+| Inbox message | `inbox/<recipient>/` | `{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (no version number, deleted once read) |
 
 Rules:
 
-1. **SPEC and ticket must share `spec-seq`**: one requirement's SPEC and its tickets use the same `spec-seq` prefix.
-2. **Version semantics**: small in-version updates **edit the same file in place**; substantive revisions **start a new versioned file** (new timestamp, `v{N+1}`) and the old file is marked at the top with "superseded by v N+1".
-3. The PRD uses the date only (`YYMMDD`) as required by the requesting side, with no time; every other output carries time.
-4. **Independent numbering**: `{prd-seq}` / `{research-seq}` / `{human-arch-seq}` / `{human-plan-seq}` / `{spec-seq}` are independent and accumulate within their category; only SPEC and ticket share one `spec-seq`.
-5. **Team lead numbering**: `{n}` in `devtl{n}` / `anatl{n}` matches the **pane label** and the inbox folder (`inbox/devtl{n}`, `inbox/anatl{n}`) in all three places, increases from 1, and is never reused after close.
-6. Historical typos stay as history: the `ver{seq}` and `YYMMDD-v{seq}` forms in old requests are **void**; this table is authoritative, and existing files are not renamed.
+1. **SPEC and tickets must align on `spec-seq`**: the SPEC for a requirement and its tickets share the same `spec-seq` prefix.
+2. **Version semantics**: small updates within a version **edit the same file in place**; substantive revisions **create a new versioned file** (new timestamp, `v{N+1}`) and annotate the old file's header in place with "superseded by v N+1".
+3. PRDs use only a date (`YYMMDD`) in the format given by the requester, with no time; all other deliverables always carry a time.
+4. **Independent numbering**: `{prd-seq}` / `{research-seq}` / `{human-arch-seq}` / `{human-plan-seq}` / `{spec-seq}` are each independent and accumulate within their own category; only SPEC and tickets must share the same `spec-seq`.
+5. **Leader numbering**: `{n}` in `devtl{n}` / `anatl{n}` is **the same name in three places** — the **pane label** and the inbox directory (`inbox/devtl{n}`, `inbox/anatl{n}`) — increasing from 1, with closed numbers never reused.
+6. Historical typo record: the `ver{seq}` and `YYMMDD-v{seq}` forms in earlier requirement text are **obsolete**; this table is authoritative and historical files are not renamed.
 
-## 3. Directory ownership
+## 3. Directory Responsibilities
 
-**Single allowed location (with owner and alignment requirement)**:
+**Sole landing location (including owner and alignment requirement)**:
 
-| Directory | Owner | Output | Alignment |
+| Sole directory | Owner | Deliverable | Alignment requirement |
 |---|---|---|---|
-| `docs/pd/prd/` | director | Product requirements (PRD) | `{prd-seq}` independent numbering |
-| `docs/pd/spec/` | director | Specification (SPEC, with acceptance criteria) | shares `spec-seq` with tickets |
-| `docs/dev/tickets/` | devm (dev-e evidence is reported via the team lead and filed by devm) | Development tickets | shares `spec-seq` with the SPEC |
+| `docs/pd/prd/` | pm | Product requirements document (PRD) | `{prd-seq}` independent numbering |
+| `docs/pd/spec/` | pm | Product specification (SPEC, including acceptance criteria) | shares `spec-seq` with tickets |
+| `docs/dev/tickets/` | pm (ticket content and numbering); devm only appends an "implementation status" section at the end of the ticket | Development ticket | shares `spec-seq` with the SPEC |
 | `docs/analyst/` | anam | Market research and competitor reverse-engineering reports | none |
-| `docs/human/human-arch/` | director | Human architecture documents | none |
-| `docs/human/human-plan/` | director | Human plan documents | none |
+| `docs/analyst/evidence/{research-seq}-{slug}/` | anam | Primary research evidence (sample artifacts / raw logs / manifest) | same number as the report; must carry `manifest.txt` (filename + size + sha256 + sampling command) |
+| `docs/human/human-arch/` | pm | Human architecture document | none |
+| `docs/human/human-plan/` | pm | Human plan document | none |
 | `docs/team.md` | director | Team contract (this file) | none |
-| `docs/handoff/` | director / devm | Handoff notes (`{director,devm}-{slug}-{YYMMDD-HHMM}-v{N}.md`, **only when the user asks**) | none |
-| `inbox/<recipient>/` | sender writes, receiver deletes after reading | Inter-role messages (runtime channel, **not versioned**, **at the project root, not under `docs/`**) | direction and `{seq}` per §1.3 |
+| `docs/handoff/` | director / devm | Handoff notes (`{director,devm}-{slug}-{YYMMDD-HHMM}-v{N}.md`, **written only when the user asks**) | none |
+| `inbox/<recipient>/` | written by the sender, deleted by the recipient after reading | Inter-role messages (runtime channel, **not committed**, **at the project root, not under `docs/`**) | direction and `{seq}` per §1.3 |
 
-1. These paths are the **only allowed locations**. Do not write to `docs/pd/` (except `prd/`, `spec/`), `docs/dev/` (except `tickets/`), `docs/human/` (except `human-arch/`, `human-plan/`), `docs/test/` or anywhere else; the inbox lives only under the project-root `inbox/` and never under `docs/`; do not create new document directories.
-2. Department output directories **never cross**: read-only references are fine, moving or renaming is not.
-3. **Team leads do not write `docs/`**: reports and evidence from `devtl{n}` / `anatl{n}` go to `inbox/<manager>/` only (the manager folds them into the ticket or report); everything under `docs/` is written by a manager.
-4. The old layout (`docs/pd/` except `prd/` and `spec/`, `docs/dev/` except `tickets/`, `docs/test/`) is history only and **accepts no new output**; historical files are neither renamed nor moved. **Current ruling (2026-10-21, second revision)**: (1) the PRD lives in `docs/pd/prd/`; (2) the SPEC moved from `docs/spec/` to `docs/pd/spec/`; (3) tickets moved from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/human/human-arch/` (human architecture) and `docs/human/human-plan/` (human plan) were added, both written by the director; (5) `docs/dev/arch/` is **void**, no separate architecture directory; (6) the inbox moved from `docs/<role>/inbox/` to the project-root `inbox/<role>/`.
-5. **The director initializes directories**: on taking over a project the director checks and fills gaps (see §3.1); anam / devm never create output directories.
-6. Checker scope: the script in §7 only verifies that the six output directories and the root `inbox/` exist, that the five skills each point at their own directory, that this contract registers every path, and that a negative sample is rejected. It **does not validate individual file paths**; the table and reviews enforce those.
+1. The paths above are the **only permitted locations**; do not write to `docs/pd/` (except `prd/`, `spec/`), `docs/dev/` (except `tickets/`), `docs/human/` (except `human-arch/`, `human-plan/`), `docs/test/` or anywhere else; the inbox exists only under `inbox/` at the project root, never under `docs/`; do not create new document directories.
+2. Department deliverable directories **do not cross each other's boundaries**: read-only references are fine, moving or renaming is not.
+3. **Leaders do not write `docs/`**: reports and evidence from `devtl{n}` / `anatl{n}` land only in `inbox/<superior>/` (or are merged by the superior into the ticket/report); everything under `docs/` is written by managers.
+4. The legacy layout (`docs/pd/` other than `prd/`, `spec/`; `docs/dev/` other than `tickets/`; `docs/test/`) is kept as history only and **accepts no new deliverables**; historical files are neither renamed nor moved (historical facts are preserved). **Current wording (user ruling 2026-10-21, second revision)**: ① PRDs land in `docs/pd/prd/`; ② SPEC moves from `docs/spec/` to `docs/pd/spec/`; ③ tickets move from `docs/tickets/` to `docs/dev/tickets/`; ④ `docs/human/human-arch/` (human architecture) and `docs/human/human-plan/` (human plan) are added and **are now written by pm** (since 2026-10-24; the rest of this item is the historical wording); ⑤ `docs/dev/arch/` is **abolished** and no separate architecture directory exists; ⑥ the inbox moves from `docs/<role>/inbox/` to `inbox/<role>/` at the project root.
+5. **Directory initialization is the director's responsibility**: when taking over a project, the director checks first and fills gaps (see §3.1); deliverable directories are not created by anam / devm.
+6. Machine-check wording: the script in §7 asserts the fourteen items listed there one by one; it **does not validate the landing path of individual files** — new deliverables are governed by this table and by review.
 
-### 3.1 Initialization (director, idempotent)
+### 3.1 Initialization (director-owned, idempotent)
 
-The director's **first action** on a project is to check directories and create what is missing. Safe to repeat; existing directories are left alone:
+The **first act** of the director when taking over a project: check the directories and create whatever is missing. Safe to rerun; existing items are left untouched:
 
 ```bash
-cd <project root>
-mkdir -p docs/{pd/{prd,spec},dev/tickets,analyst,human/{human-arch,human-plan}} inbox/{director,devm,anam}
-grep -qxF 'inbox/*/' .gitignore 2>/dev/null || echo 'inbox/*/' >> .gitignore   # inbox is not versioned
-bash dmt-director/scripts/check-dmt-doc-paths.sh .
+bash dmt-director/scripts/init-project.sh <project-root>   # omit the argument to use the current directory
 ```
 
-- **Done criterion**: the checker prints `ALL_PASS`. A missing directory prints `FAIL 目录缺失` (directory missing); the director creates it and reruns.
-- **Directories only, no artifacts**: no placeholder files, so an empty directory is never mistaken for a delivered artifact.
-- **anam / devm never create output directories**: if a target directory is missing, report to the director (inbox folders are a runtime channel, `mkdir -p` is fine; `inbox/devtl{n}` and `inbox/anatl{n}` are created by the sender).
-- The contract file `docs/team.md` and skill installation are outside this step (see `README.md`).
+The script does three things: creates the six deliverable directories + four inboxes + `locks/`; writes `inbox/*/` and `locks/` into `.gitignore` (skipped if already present); and runs the machine check until `ALL_PASS`.
+
+- **Completion criterion**: the machine check prints `ALL_PASS`. When a directory is missing the script reports `FAIL missing directory`; the director fills the gap and reruns.
+- **Create directories only, never deliverables**: empty directories are not seeded with placeholder files, so they cannot be mistaken for existing deliverables.
+- **`locks/` is a runtime channel**: file claim registration (§1.5), not committed; the script creates it if missing, and the director creates it as part of initialization.
+- **pm / anam / devm do not create deliverable directories**: if their target directory is missing they report to the director (inbox directories are a runtime channel and may be created on demand with `mkdir -p` as a fallback; `inbox/devtl{n}` and `inbox/anatl{n}` are created on demand by the sender).
+- The contract file `docs/team.md` and skill installation are not part of this step (installation is covered in `README.md`).
 
 ## 4. Workflow
 
-1. **anam researches**: anam opens `anatl{n}` lead panes on demand and the lead dispatches `ana-e`; anam verifies and consolidates the research report, which lands in `docs/analyst/` **after director review**; **once the batch is fully closed out with no next batch to dispatch, anam closes that batch's `anatl{n}` (§1.2)**.
-2. **director writes PRD and SPEC**: based on the research report and user conversations, the director produces the PRD and SPEC (with acceptance criteria), landing in `docs/pd/prd/` and `docs/pd/spec/` **after devm review**.
-3. **devm splits tickets**: devm uses `/to-tickets` to cut the SPEC into matching development tickets under `docs/dev/tickets/`; devm consolidates, reviews and integrates the department's results.
-4. **devm opens a lead pane and dispatches**: devm creates `devtl{n}` in its own tab and hands over the ticket (path, base sha, Files boundary, acceptance criteria, `timeoutMs`, report format); the team lead creates the worktree, dispatches `dev-e`, runs the implementation-level check and reports back. **One ticket, one writer.**
-5. **devm integrates**: check the diff and the check readings the lead reported → build and test → merge (resolve conflicts hunk by hunk by intent) → send failures back to the **same team lead** (which returns them to the same dev-e) → update each ticket's status; **once the batch is fully closed out with no next batch to dispatch, close that batch's `devtl{n}` (§1.2)**.
-6. **Hand over to director review**: devm submits the code to the director **department**; one ticket maps to one SPEC. Chain: the director verifies against the SPEC acceptance criteria in person → the director gives a verdict → **the director notifies devm** → only then does devm `git push`.
-7. **Parallelism**: for independent work, every role parallelizes **across its direct reports, as many as the work allows** (director across dmt-dm/anam; devm across multiple `devtl{n}`; anam across multiple `anatl{n}`; a team lead across multiple engineers). Priority: dynamic workflow > multiple parallel sub-agents. **Never serialize to save effort, and never dispatch across levels.**
+1. **anam research**: anam dispatches evidence gathering by threshold (≤2 self-dispatched `ana-e`, >2 opens `anatl{n}`); anam verifies and closes out the research report, which **lands in `docs/analyst/` after director review**; **once the batch is closed out and no further batch can be assigned, anam closes that batch's `anatl{n}` (§1.2)**.
+2. **director sets the criteria → pm produces PRD, SPEC and tickets**: after agreeing boundaries, out-of-scope items and acceptance criteria with the user, the director hands the work to pm; pm writes the PRD and SPEC based on the research report ([`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md), including item-by-item testable acceptance criteria), then uses [`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md) to split the SPEC into development tickets, writing `docs/pd/prd/`, `docs/pd/spec/` and `docs/dev/tickets/` respectively (file header `Status: pending review`), and **pm self-reviews them under the document gate** (acceptance criteria testable item by item, `spec-seq` aligned, slices independently verifiable, Files non-overlapping, dependencies acyclic); once passed, pm changes the status line in place to `Status: passed` and hands them to the director for criteria confirmation and scheduling; the director **does not review documents item by item** and only arbitrates when criteria conflict.
+3. **devm takes the tickets**: devm reads this batch's tickets in `docs/dev/tickets/` (written by pm, already PASSed by the director), checks `spec-seq` alignment and completeness of criteria, and schedules by dependency; **devm does not split tickets or change criteria** — missing items are reported to the director for pm to fill in. devm owns review and integration of the department's deliverables.
+4. **devm assigns work by queue depth**: **queued tasks ≤4 ⇒ derive `dev-e` sub-agents itself** (no pane, one worktree per ticket); **>4 ⇒ create `devtl{n}`** (prefer cbc + `/dmt-dtl`), handing the ticket (path, ticket base, Files boundaries, acceptance criteria, `timeoutMs`, report format) to the leader, who creates the worktree, dispatches `dev-e` to implement and does the implementation-level first pass. The anam threshold remains ≤2 / >2 (≤2 self-dispatch `ana-e`, >2 create `anatl{n}`).
+5. **devm acceptance and integration**: check the diff and first-pass readings (on the ≤4 path, collect sub-agent reports and do the first pass itself) → build and test → merge (resolve conflicts hunk by hunk according to intent) → send failures back to the original dispatcher → append "implementation status" at the end of each ticket (without changing criteria); **once the whole batch is closed out and no further batch can be assigned, close that batch's `devtl{n}` (§1.2)**.
+6. **devm reviews the code, director releases**: once the ticket code is done, **devm reviews it under the code gate** (checking every SPEC criterion, verifying diff and evidence, merging, writing "implementation status"); a devm PASS means the code passes. devm hands the review conclusion and evidence to the director, who after a **spot check** commits and `git push`es to GitLab itself (at least once per completed ticket); devm / leaders / engineers do not push.
+7. **Parallelism**: for tasks without dependencies, roles **parallelize only among their direct reports** (the director among pm/devm/anam; pm among multiple `pm-e`; devm among multiple `dev-e` or `devtl{n}`; anam among multiple `ana-e` or `anatl{n}`; leaders among multiple engineers), with priority: dynamic workflow > multiple parallel subagents; **do not serialize for convenience and do not dispatch across levels**. **The director's and pm's own dependency-free work (pre-review evidence checks, document cross-checking, external fact-finding) also uses parallel sub-agents**, with conclusions written by the person themselves.
 
-### 4.1 PRD template (director)
+### 4.1 PRD Template (pm)
 
-`Problem Statement` / `Target users and scenarios` / `Solution overview` / `User stories (verifiable)` / `Acceptance criteria` / `Out of scope` / `Open questions`.
+`Problem Statement` / `Target users and scenarios` / `Solution overview` / `User stories (acceptable)` / `Acceptance criteria` / `Out of scope` / `Open questions`.
 
-### 4.2 SPEC template (director)
+### 4.2 SPEC Template (pm)
 
-`Problem Statement` / `Solution` / `User Stories` / `Acceptance criteria (each testable)` / `Implementation decisions` / `Test seams` / `Out of Scope` / `Change log`.
-The SPEC must be self-contained: every User Story converts into a ticket and into test cases.
+`Problem Statement` / `Solution` / `User Stories` / `Acceptance criteria (testable one by one)` / `Implementation decisions` / `Test seams` / `Out of Scope` / `Change log`.
+The SPEC must be self-contained: every User Story can be turned into a ticket and a test case.
+
+### 4.3 Ticket Template (pm)
+
+`Goal` / `Input SPEC section` / `Acceptance criteria (testable one by one)` / `Files scope` / `Dependencies (ticket numbers)` / `timeoutMs` / `Status` / `Implementation status (appended by devm)`.
+pm creates tickets with [`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md) as tracer-bullet vertical slices; **numbering follows dependency order and `spec-seq` aligns strictly with the SPEC**; `Files scope` must not overlap and `Dependencies` must be acyclic.
 
 ## 5. Discipline
 
 ### 5.1 Git
 
-1. **Never `git add -A` / `git add .`**. Always list explicit paths (prefer `git commit -m "..." -- <path>` to bypass the index), and do nothing else between `add` and `commit` (so a concurrent writer cannot slip into the index).
-2. Engineers (`dev-e`) run `git add` + `git commit` **inside their own worktree only**; **no `git push`**, **no merge into the trunk**. **Only devm may `git push`**, and only after the director has reviewed and notified.
-3. Run `/code-review` before committing; after committing, verify the index with `git diff --cached --name-only`.
-4. **One writer per worktree (the team lead included)**: from start to finish a worktree has **exactly one agent allowed to commit** — the one dispatched to that ticket. A lead that needs to commit tickets or documents **must not** do it inside the worktree an engineer is working in: use the main worktree or a separate one. **Concurrent commits raise no error; they simply sweep someone else's changes into your commit**, and only `git show --stat` reveals it afterwards — by then it is already history.
-   - **Why**: on 2026-10-23 devtl1 committed four docs commits in parallel inside the same worktree dev-e13 was working in. Nothing was lost, but the lead itself noted that "a lucky outcome does not make the process right". **The rule existed only in the director's memory and was never written into this file** — an unwritten rule is not a rule.
-   - **How to apply**: before committing, run `git status` and look for someone else's uncommitted changes; if any exist, switch to `git commit -- <your paths>` **without** `add` first; if the same worktree already holds another writer's changes, stop and ask devm instead of judging that "it is probably fine".
+1. **`git add -A` / `git add .` are forbidden**; commits always list file paths explicitly (prefer `git commit -m "..." -- <path>`, bypassing the index), and no other action may be inserted between `add` and `commit` (so the index cannot be swept in by a concurrent writer).
+2. **Pushing belongs to the director alone**: `git push` **may only be executed by the director**; `pm` / `devm` / `anam` / leaders / engineers **must never push**. Engineers (`dev-e`) only `git add` + `git commit` inside their own worktree and **must not push** or **merge into the mainline**.
+3. Run [`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md) before committing; after committing, verify the staging area with `git diff --cached --name-only`.
+4. **A single writer per worktree (including the leader itself)**: from start to finish, **only the one agent assigned to that ticket may commit** in a worktree. Anyone who needs to commit their own docs / notes **must not** do so in a worktree an engineer is working in — use the main working tree or open another worktree. **Concurrent commits raise no error; they simply sweep someone else's changes into your commit**, and only `git show --stat` afterwards reveals it — by which time it is already in history.
+   - **Why**: on 2026-10-23 devtl1 committed 4 docs commits in parallel on the same worktree where dev-e13 was working; no damage was done, but it noted itself that "a lucky outcome does not mean the process was right". **This rule previously existed only in the director's memory and was not written into this file** — an unwritten rule is not a rule.
+   - **How to apply**: before committing, the leader runs `git status` to see whether someone else has uncommitted changes; if so, switch to `git commit -- <own paths>` and **do not `add` first**; if another writer's changes are already in the same worktree, stop and ask devm rather than deciding on your own that "it should be fine".
+5. **Push cadence (director)**: ① **push at least once per completed ticket** to GitLab (`10.223.36.12:808`), with the push message carrying `{spec-seq}-ticket-{slug}` and a one-sentence result; ② **at least hourly**, inspect `git status --porcelain` and commit and push any new or modified files by explicit path (no need to wait for the ticket to close out). Report the inspection and push results in one sentence in the next report (what was pushed, what was skipped, and why).
+   - Command: `bash dmt-director/scripts/publish.sh -m '<message>' -- <explicit paths...>`; `--auto` enumerates changed paths from `git status --porcelain` (still explicit paths, never `git add -A`); `--no-push` commits only.
+6. **"Taking main" (`checkout --ours`) during a merge conflict holds only when main is a strict superset of the branch.** The way to judge is not who changed more, but **comparing item by item which lines each side has that the other lacks**; if even one item exists only on the branch, you must compose by hand.
+   - **Why**: in T4 main was a strict superset of the branch ticket, so `--ours` was safe; in T6 it was not — main had "not-worse + simplest" and the "21% vs 85% criteria isolation", while the branch had "measured readings + the 2×2 six tables + paired σ correction", so **taking either side would lose something**. The same action had opposite safety in two merges, **which shows "that is how we did it last time" is no justification**.
+   - **How to apply**: before merging, produce a two-sided difference list (`git diff --stat main...branch` file by file, or judge directly with `git merge-tree`); after composing, **diff once more against the branch version** and confirm the only differences left are "lines unique to main" and "the few hand-composed lines", with everything else byte-identical.
 
-### 5.2 Parallel sub-agents
+### 5.2 Parallel Sub-agents
 
-1. Do a **dependency analysis** before dispatching: only independent tasks run in parallel; tasks sharing files, sharing a build target or needing ordered acceptance must be serial.
-2. **Testable criterion at team-lead level**: independent units (tickets / evidence units) **≥2 ⇒ dispatch concurrently**; the only exception is **stating the serial reason in the report** (reason limited to: dependency / shared files / shared build target / ordered acceptance). Priority: dynamic workflow `runs.all` > multiple parallel sub-agents.
-   - **The same criterion applies at manager level**: **≥2 independent tickets or sub-questions must likewise run concurrently**, spread over multiple lead panes — "the manager is one person" is not a reason to serialize.
-3. Every dispatch prompt states: inputs (artifact paths), boundary, expected output, reporting requirements, `timeoutMs` (no shorter than 45 min for long chains).
-4. Sub-agents are always dispatched in the background/async: **end the turn immediately after dispatching** and resume on the completion notification; never poll.
-5. Each development engineer gets **one git worktree** and edits and commits only there; the main worktree is read-only.
-6. Sub-agent results are written into authoritative documents or used downstream only after **the team lead that spawned them** verifies the evidence; a manager never accepts an engineer's raw report — it goes through the lead.
+1. Do a **dependency analysis** before dispatching: only dependency-free tasks may run in parallel; tasks that share files, share a build target or have a sequential acceptance relationship must be serial.
+2. **Manager-layer path criterion (testable)**: before starting, count **the currently unclosed queued tasks** — **`devm`: ≤4 ⇒ derive `dev-e` itself (no pane), >4 ⇒ open a `devtl{n}` pane**; **`anam`: ≤2 ⇒ derive `ana-e` itself, >2 ⇒ open an `anatl{n}` pane**. Both **prefer the cbc harness** (`codebuddy --permission-mode auto` + `auto mode on` + `/dmt-dtl` or `/dmt-atl`). The path is decided by queue depth, not by convenience; leader panes already opened are reused within the batch.
+3. **Leader-layer testable criterion**: dependency-free units (tickets / evidence units) **≥2 ⇒ must be dispatched concurrently**; **the only exception is a serial justification stated in the report** (justifications limited to: dependency / shared files / shared build target / sequential acceptance relationship). Means in priority order: dynamic workflow `runs.all` (pi) > multiple parallel subagents (cbc uses Agent/team).
+4. **Product department**: `pm` has no leader layer, so dependency-free product units **≥2 ⇒ must dispatch `pm-e` concurrently** (cbc uses Agent sub-agents / team, pi uses dynamic workflow); the same applies to the `director`'s pre-review checks.
+5. Every dispatch prompt must state explicitly: input (deliverable paths), boundaries, expected output, reporting requirements, `timeoutMs` (no shorter than 45 min for long chains).
+6. Sub-agents are always dispatched in the background/asynchronously, **the current round ends immediately after dispatch**, and acceptance happens when the completion notice wakes you; do not poll.
+7. Development engineers get **one git worktree each** and edit and commit only inside that worktree; the main working tree is read-only.
+8. All sub-agent results must have their evidence reviewed by **the level that derived them** before they are written into authoritative documents or feed the next step; managers do not take an engineer's raw report at face value.
 
-### 5.3 Review gates
+### 5.3 Review Gates
 
-| Gate | Submitted by | Reviewed by | Pass condition |
+| Gate | Submitter | Reviewer | Pass condition |
 |---|---|---|---|
-| Research report | anam | director | The director accepts the conclusions and sources; lands in `docs/analyst/` |
-| PRD and SPEC | director | devm | devm accepts feasibility and slicing granularity; lands in `docs/pd/prd/` and `docs/pd/spec/` |
-| Implementation check | devtl | devm | Every ticket criterion has a reading, red gates are classified, Files boundary respected |
-| Team-lead instance close | devm / anam (creator) | creator self-check | Report filed, worktree removed with `git worktree remove`, no unread message in the inbox; after closing, `herdr pane list` no longer shows the label |
-| Human architecture / human plan | director | User | Structure matches the real code, no future state mixed in; lands in `docs/human/human-arch/` and `docs/human/human-plan/` |
-| Ticket code | devm | director | Every SPEC acceptance criterion passes; push only after the director notifies devm |
-| Cross-department disagreement | devm / anam | director | The director arbitrates and replies with a ruling |
+| Research report | anam | director | the director accepts the conclusion and evidence sources; **anam writes it to** `docs/analyst/` |
+| PRD / SPEC / tickets | pm (drafting) | **pm (document gate)**; the director arbitrates only on criteria conflicts | acceptance criteria testable item by item, `spec-seq` aligned, slices independently verifiable, Files non-overlapping, dependencies acyclic; after passing, the status line becomes `Status: passed` |
+| Implementation first pass | devtl (>4 path) / devm (≤4 self-dispatch path) | devm | every ticket criterion has a reading, red gates classified, Files boundaries not exceeded |
+| Leader instance closure | devm / anam (creator) | the creator's own self-check | report booked, worktree `git worktree remove`d, no unread messages from that leader in the inbox; after closing, no such label in `herdr pane list` |
+| Human architecture / human plan | pm | **pm (document gate)** + user | structure matches the real code, no mixing in of future state, landed in `docs/human/human-arch/` and `docs/human/human-plan/` |
+| Ticket code | development department (>4 via `devtl{n}`, ≤4 via devm's own `dev-e`) | **devm (code gate)** | every SPEC criterion passes, diff and evidence verified; merge and write "implementation status" after PASS |
+| Release | devm | director | `git push` after spot-checking the review conclusion and evidence (one push per ticket; **does not replace devm's code review**) |
+| Cross-department disagreement | pm / devm / anam | director | the director decides and returns the conclusion |
 
-## 6. Writing style (all roles)
+### 5.4 Reading Discipline (performance window)
 
-The reader is **someone who knows a little software engineering but did not work on this project** (the user included): plain language, conclusion before evidence, emphasise what matters, translate jargon into everyday words.
+1. **The dump switch must be registered with the window**: `obb_roi_dump_enabled` (`yolo11ncnn.cpp:1063`, off by default) computes a raw sha256 per frame when enabled, costing **13.3%** of whole-process CPU and about 95% of the detect thread ⇒ measured `detect_fps_measured` **1.79** (originally recorded as 0.76, corrected by 004 — 0.76 was a stale cross-round snapshot) versus **3.86** in the production profile. **fps / timing comparisons from dump-on windows are void** and may not enter any conclusion; before opening a window you must check `diagnostics_state` and write that value into the criteria line.
+2. **No absolute-value comparisons across builds**: milliseconds from different so / APK builds are not comparable (the build installed on the device, the corpus and the in-repo APK are three different sources); ratios (such as the detect forward share f) may be compared across builds, but must carry a banner saying so.
+3. **"Stopped" must be re-verified**: after `force-stop`, the app counts as stopped only when `pidof <pkg>` is empty; a leader's report of "stopped" may not be taken at face value.
+4. **A snapshot counts for this window only when both conditions hold**: ① it is inside this window's `new.list`; ② its `build_sha256` is **identical** to the other snapshots of the same window. Failing either ⇒ **cross-round residue**, forbidden for any reconciliation (including `detect_ms` / `fps` / `decode_ms`). **Why**: `new.list` only proves "the file is newly appeared this time", not "it belongs to this session" — the 2026-10-24 004 window had one `a676c083` (old build) snapshot mixed into `new.list` (`detect_frames=172`, `window_ms=30106`, 33.8 s earlier than the second snapshot of the same window); the same pit had already occurred three times before (the 62 s window, the `keys.tsv` contamination, `67528008`).
+5. **Install permission (director only)**: **write operations such as `adb install` / `uninstall`, overwriting the device's `bcr_t36_calib.txt` / `bcr_detect_probe.trigger` / `dump_prefs`, and `force-stop` may only be executed by `director`**; `pm` / `devm` / `anam` / leaders / engineers **are forbidden to install or write to the device** (when an install is needed, report to the director, who acts personally and does not delegate). After installing, always report **APK `sha256` + `lastUpdateTime` + empty `pidof`**. **Why**: on 2026-10-24 the dev-e on T1 (a host-only ticket) installed by itself, overwrote calib and force-stopped someone else's process at `pid=23862`; the user then ruled that both installation and pushing are consolidated in the director alone.
 
-## 7. Checker
+**Why**: the f re-measurement window of 2026-10-24 (dump on) was once treated as a performance window; on the same day a leader reported "the App has been force-stopped" while the pid was still present. **An unwritten discipline is not a discipline**.
+
+## 6. Expression (all roles)
+
+The reader is **someone with a little software engineering background who has not worked on this project** (including the user): plain language only, conclusion before evidence, emphasis on what matters, jargon translated into human terms.
+
+## 7. Machine Check
 
 ```bash
 bash dmt-director/scripts/check-dmt-doc-paths.sh
 ```
 
-**Seven** checks: (1) the six output directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/analyst`, `docs/human/human-arch`, `docs/human/human-plan`) plus the root `inbox/`; (2) the five skills (`dmt-director` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl`) each point at their own directory; (3) **the team-lead close action is registered** (this contract and the `dmt-dm` / `dmt-am` skills contain `herdr pane close`, and this contract contains "never close before collecting" and "Only panes may be closed"); (4) **identity resolution is registered** (this contract and all five skills contain `pane label`, and this contract forbids resolving by position inside a tab); (5) **the team-lead parallelism criterion is registered** (`dmt-dtl` / `dmt-atl` contain "must run in parallel", and this contract contains "≥2 ⇒ dispatch concurrently"); (6) this contract registers every path; (7) a negative sample is rejected (**only the §3 table is inspected**; historical notes in §8 do not count as registration). **Rerun after any change to paths, pane lifecycle or parallelism criteria.**
+Checks **fifteen items**: ① the six deliverable directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/analyst`, `docs/human/human-arch`, `docs/human/human-plan`) + `inbox/` exists at the root; ② the six skills (`dmt-director` / `dmt-pm` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl`) each point at their own single directory (PRD / SPEC / tickets / human documents belong to `dmt-pm`); ③ **the leader instance closure action is registered** (the contract and the `dmt-dm` / `dmt-am` skills contain `close-leader.sh`, and the contract contains "never close before collecting" and "only panes may be closed"); ④ **identity recognition is registered** (the contract and all six skills contain `pane label`, and the contract contains "not by position within a tab"); ⑤ **the leader-layer parallelism criterion is registered** (`dmt-dtl` / `dmt-atl` contain "must be parallel", and the contract contains "≥2 ⇒ must dispatch concurrently"); ⑥ **the manager-layer path criterion is registered** (`dmt-dm` contains "≤4" and ">4", `dmt-am` contains "≤2" and ">2", and the contract contains "≤4 ⇒ derive `dev-e` itself" and "≤2 ⇒ derive `ana-e` itself"); ⑦ **install and push ownership is registered** (the contract contains "only the director can execute" and "only the director may execute", `dmt-director` contains `git push`, `dmt-dm` contains "must not push", and the contract contains "push at least once per completed ticket" and "at least hourly"); ⑧ **the mattpocock mandatory skills are registered per role** (the contract contains "mandatory" and the role table; `dmt-director` contains [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)+[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md), `dmt-pm` contains [`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md)+[`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md), `dmt-dm` contains [`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md), `dmt-dtl` contains [`/tdd`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md), `dmt-atl` contains [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md)); ⑨ **file claims are registered** (the contract contains "file claims" and `file-claim`, each of the six skills contains `file-claim`, and the script `scripts/file-claim.sh` exists); ⑩ **review gate ownership is registered** (the contract and `dmt-pm` contain "document gate", the contract and `dmt-dm` contain "code gate", and `dmt-director` contains "does not replace"); ⑪ **the cbc-herdr common skill is registered** (each of the six pane-role skills contains `cbc-herdr`); ⑫ **skill links match upstream** (the contract and all six skills contain `raw.githubusercontent.com`, and skill names match the `mattpocock/skills` directory names verbatim); ⑬ this contract is fully registered; ⑭ negative samples are correctly rejected (**only the §3 landing registry table** counts; historical traces in the §8 change log do not count as registration). **Changing the path convention, pane lifecycle, parallelism wording, role hierarchy, write permissions, mandatory skills, file claims... [truncated]**
 
-## 8. Change log
+## 8. Change Log
 
-- **2026-10-24 (user ruling, tenth: identity moves to pane label + team-lead panes inside the manager tab)**: (1) **The earlier "self-run / delegated" ruling is rolled back** — the manager level keeps a single path (open lead panes inside its own tab, the lead then spawns the engineer sub-agents); engineers are always the lead's sub-agents and a manager never tasks dev-e directly. §4.0 is deleted, and §1.1 rules 2/3/5, §4, §5.2, §5.3 and checker item 4b are rolled back with it. (2) **Identity moves from "tab label + first pane in the tab" to "pane label"**: the pane label equals the role or instance name and is unique in the workspace; **position inside a tab is no longer used** (measured: `pane swap` flips the `pane list` order immediately, so "the first pane" silently addresses the wrong agent). (3) **Team-lead panes open inside the manager's own tab**: `herdr pane split "$HERDR_PANE_ID" --direction right --no-focus` plus `pane rename`; no tab is created and the tab degrades to a visual grouping. (4) **The creator starts the lead pane**: `pane send-text 'codebuddy --permission-mode auto'` + `pane send-keys enter`, readiness via `wait-output --source visible --match 'auto mode on'`; therefore leads **skip** the `shift+Tab` permission-mode flow, which now applies only to sessions the user starts by hand. (5) **Closing uses `herdr pane close`**, and **`herdr tab close` is forbidden** — a lead shares its manager's tab, so closing the tab would kill the manager and every other lead in the batch. (6) **Identity self-heal**: every role checks the label of `$HERDR_PANE_ID` after start and renames it when it does not match; a lead must not identify itself through `tab list`. (7) Capacity note: keep at most two lead panes per tab, otherwise split the batch or use `pane zoom`. Synced changes: the five skills (`dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl` and `dmt-director`), `README.md` and the checker.
-- **2026-10-22 (user ruling, eighth: unified parallelism criterion at team-lead level)**: `devtl` previously said tickets "may" run in parallel while `anatl` said "must", so the two levels disagreed and the level with the real resource limits said nothing. (1) Both skills' step 3 now use one wording: **independent units must run in parallel, as many as the work allows** (concurrent dispatch in the same reply, dynamic workflow `runs.all` first, then multiple sub-agents; end the turn immediately, never poll); **only** dependency / shared files / shared build target / ordered acceptance justify serial work, **and the reason must be stated in the report**; concurrency is bounded by resources (development lead: **no concurrent builds inside one worktree**; analysis lead: no concurrency on the same input file / device / REA session). (2) §5.2 gains the **testable criterion**: independent units ≥2 ⇒ dispatch concurrently, exception only with a stated serial reason. (3) The checker gains static assertions.
-- **2026-10-22 (checker fix, not a user ruling)**: the §7 negative-sample assertion was self-contradictory — the script grepped the whole contract for the bad path while §8 must record that path, so the assertion was permanently red (the pre-change `HEAD` failed the same way). It now inspects **only the §3 table rows**, keeping the tooth (writing the bad path into the table still fails) while historical notes no longer trip it.
-- **2026-10-22 (user ruling, org change)**: the project is named **dmt** and the organization is fixed at **four levels** `director → department manager → team lead → engineer`: (1) the top role is `director` (director, also product manager) with only `devm` and `anam` reporting to it; (2) development manager `devm` owns n development team leads `devtl{n}` (same label, spawned on demand with `herdr tab create --label`), each owning development engineers `dev-e`; (3) analysis manager `anam` owns n analysis team leads `anatl{n}`, each owning analysis engineers `ana-e`; (4) every role talks only to its direct superior and direct reports, and cross-department matters go through the director.
-- **2026-10-21 (user ruling)**: (1) the PRD category **returns**, moving from `docs/prd/` to `docs/pd/prd/` (`docs/prd/` is void); (2) `docs/dev/arch/` is added as the **software design architecture** location, written by devm and reviewed by the director, named `{seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md`.
-- **2026-10-21 (user ruling, second)**: directory restructure: (1) the inbox moves to the project root `inbox/<director|devm|anam>/` and leaves `docs/` (`.gitignore` uses `inbox/*/`); (2) the SPEC moves from `docs/spec/` to `docs/pd/spec/`; (3) tickets move from `docs/tickets/` to `docs/dev/tickets/`; (4) `docs/human/human-arch/` and `docs/human/human-plan/` are added (both written by the director), and `docs/dev/arch/` is void.
-- **2026-10-21 (user ruling, third)**: sequence numbers split by output category: PRD `{prd-seq}`, research report `{research-seq}`, human architecture `{human-arch-seq}`, human plan `{human-plan-seq}`, each independent and accumulating within its category; SPEC and ticket still share `{spec-seq}`; inbox messages keep the `{seq}` message number.
-- **2026-10-21 (user ruling, fourth)**: directories are **checked and filled by the director at initialization** (§3.1 added, idempotent command + `ALL_PASS` criterion); anam / devm never create output directories and report gaps to the director.
-- **2026-10-22 (user ruling, fifth)**: directory rename: (1) the research-report directory `docs/research/` becomes `docs/analyst/` (still owned by anam); (2) `docs/user/` becomes `docs/human/`, with `user-arch/`→`human-arch/` and `user-plan/`→`human-plan/` underneath (still owned by the director); (3) the checker script `check-pda-doc-paths.sh` is renamed `check-dmt-doc-paths.sh`, and inside it `PDA_SKILLS_DIR`→`DMT_SKILLS_DIR` and the negative sample `docs/not-a-pda-output-dir/`→`docs/not-a-dmt-output-dir/`.
-- **2026-10-22 (user ruling, sixth)**: inbox protocol simplified: on the doorbell alert the receiver loads the file into its context window, **sends no receipt**, and deletes it once read; delivery is proven by a successful doorbell send, not by an ack.
+- **2026-10-24 (user ruling · 26th: scripting deterministic actions)**: turns "deterministic result" instructions from prose into scripts, leaving only criteria and exceptions in the body. Adds `scripts/init-project.sh` (create directories + `.gitignore` + machine check), `setup-team.sh` (director self-naming + create pm/devm/anam + start on their behalf + enter skills, idempotent), `spawn-leader.sh` (open leader panes by the right/down rule + start on their behalf + enter `/dmt-dtl`｜`/dmt-atl`), `close-leader.sh` (label resolution + refuse when the inbox is non-empty + panes only), `send-msg.sh` (automatic seq/timestamp/direction + doorbell fallback), `publish.sh` (explicit-path commit + push to GitLab/GitHub, `--auto` still never uses `git add -A`), `install-skills.sh` (symlink or copy six skills + contract + scripts + init). §1.2 / §1.3 / §3.1 / §5.1 and the six skills now call the scripts; the machine check adds 4j (nine scripts exist and are executable), and criteria go from fourteen to fifteen.
+- **2026-10-24 (full audit fix, not a user ruling)**: after checking file by file, the following stale / contradictory / invalid content was fixed: ① **`pm` shares a tab with `director`** ⇒ the migration fallback and "do not identify yourself via tab list" now add the `pm` exception, so the tab fallback cannot silently point at the wrong pane. ② In the §1.2 bash block for creating panes, a `>` note had fallen inside the code fence (it would be executed as a command) ⇒ moved out of the fence. ③ The §3 historical wording "human architecture/plan written by director" is changed to **now written by pm**; the §3 machine-check wording changes from the old "five/six items" description to point at the fourteen items in §7. ④ The §4 research step adds the anam threshold (≤2/>2); acceptance integration changes from "update status per ticket" to "append implementation status (without changing criteria)". ⑤ §5.1 item 4 "leaders must commit tickets/documents" is stale (tickets are written by pm and leaders do not write docs) ⇒ changed to "anyone committing their own documents/notes". ⑥ **§5.3 and §5.4 were in the wrong order** ⇒ 5.3 review gates first, 5.4 reading discipline after. ⑦ The reviewer for human architecture/plan changes from "director + user" to "pm (document gate) + user", consistent with document gate ownership; the ticket-code submitter notes the ≤4 path. ⑧ The duplicate "17th" change-log entry becomes "17th appendix". ⑨ README: the leftover leader-generation threshold `>2` becomes devm >4 / anam >2; "devm assesses implementability" in the workflow becomes pm's document gate self-assessment; the script tree and symlinks add `file-claim.sh`; `pi-subagents` is marked **pi harness only** (cbc uses Agent/team). ⑩ `dmt-am` was missing the "check claims before editing" section ⇒ added, and machine check 4f covers all six skills. ⑪ The "skip steps 4/3 and 6" in `dmt-dm` / `dmt-am` did not match the actual steps (ticket/question dispatch is not skipped) ⇒ changed to skip step 6 only. ⑫ In `dmt-director`, the actor of "landing" after research review becomes anam. ⑬ The `pi-subagents` wording in the six skills and the README is unified as "pi harness only". Machine check `ALL_PASS` (fourteen items).
+- **2026-10-24 (user ruling · 18th: §5.1 adds "no APK in the repo")**: `*.apk` is never committed; only `tools/apk-manifest.tsv` is kept (path + size + sha256 + build sha); existing APKs are ruled on separately. Landing point = the new criterion **T4-f** in the T4 ticket (no APK in new commits + manifest in the repo). Basis = the GitHub repo is 2.16 GB with 10+ historical 41 MB debug APKs.
+- **2026-10-24 (user ruling · 25th: align skill names with upstream and add raw links)**: ① The 11 mattpocock skill names used by the team are **checked verbatim** against the upstream directory names in [`mattpocock/skills`](https://github.com/mattpocock/skills) (`grilling` / `grill-me` / `grill-with-docs` / `code-review` / `to-spec` / `to-tickets` / `research` / `tdd` / `implement` / `diagnosing-bugs` / `improve-codebase-architecture`). ② Every skill mention in the document becomes a markdown link pointing to `https://raw.githubusercontent.com/mattpocock/skills/main/skills/<category>/<name>/SKILL.md` (`grilling` and `grill-me` under `productivity`, the rest under `engineering`), each verified with HTTP 200. ③ `/rea` (REA competitor reverse engineering) is not part of that repo and keeps its name with no link. ④ The machine check adds assertion 4i (the contract and all six skills contain `raw.githubusercontent.com`), criteria go from thirteen to fourteen. Synchronized changes: `README.md`, `team.md`, the six skills.
+- **2026-10-24 (user ruling · 24th: ana-e adds `/rea`; devtl adds [`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md); devm threshold relaxed to 4)**: ① `ana-e`'s mandatory skills add **`/rea`** (competitor reverse engineering must go through REA), written into the dispatch prompt by `anatl`; the §1.4 table is updated. ② `devtl`'s mandatory skills add **[`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md)** (the user said "/implements"; the actual skill name is [`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md)). ③ **`devm`'s leader-layer threshold changes from >2 to >4**: with ≤4 queued tasks devm derives `dev-e` itself, and only >4 opens `devtl{n}`; the `anam` threshold stays ≤2 / >2. ④ Synchronized changes: `dmt-dm` / `dmt-dtl` / `dmt-atl` / `team.md` (§1.1, §1.2, §4, §5.2, §5.3, §7) / `README.md` / machine checks 4b (now devm ≤4, anam ≤2) and 4e (new `/rea` and [`/implement`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/implement/SKILL.md) assertions).
+- **2026-10-24 (user ruling · 23rd: everyone loads `cbc-herdr`)**: ① The skill lists of the six pane-resident roles (`director` / `pm` / `devm` / `anam` / `devtl` / `anatl`) uniformly register **`cbc-herdr`** (CodeBuddy's `working` / `idle` / `blocked` status reporting in herdr, which makes `agent_status` in `herdr pane list` trustworthy). ② Engineers are sub-agents occupying no pane and do not load that skill. ③ The "herdr-cbc" the user mentioned lands under the actual skill name **`cbc-herdr`**. ④ The machine check adds assertion 4h, criteria go from twelve to thirteen. Synchronized changes: the six skills, `README.md`, `team.md` §1.4.
+- **2026-10-24 (user ruling · 22nd: director / pm / anam gain [`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md) and [`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md))**: ① `director` gains [`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md) (self-review of requirements and rulings) and [`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md) (cross-examining contract and documents); ② `pm` gains the same two (document gate self-assessment, cross-examining PRD / SPEC / tickets); ③ `anam` gains the same two (research plan self-review, cross-examining evidence and documents), mirrored to `anatl`; ④ the §1.4 role table adds the `anam` row (previously missing). Synchronized changes: `dmt-director` / `dmt-pm` / `dmt-am` / `dmt-atl`, `README.md`, machine check 4e.
+- **2026-10-24 (user ruling · 21st: check file claims before editing; review gates delegated to pm/dm)**: ① **new §1.5 file claims** — before editing any file, every role must run `scripts/file-claim.sh check/claim`; `rc=3` means stop, and `release` once done; claim records land in `locks/` at the project root (not committed), with a 30-minute TTL where expired claims may be preempted but must leave a trace; the model reference is Orca (look at active sessions in the worktree first), and `orca worktree ps` is added when the Orca runtime is reachable. ② **document gate belongs to pm**: PRD / SPEC / tickets are drafted and **reviewed by pm** (acceptance criteria testable item by item, `spec-seq` aligned, slices independently verifiable, Files non-overlapping, dependencies acyclic), and pm changes the status line itself once they pass; the director does not review documents item by item and only arbitrates on criteria conflicts. ③ **code gate belongs to dm**: once ticket code is done it is **reviewed by devm** (checking every SPEC criterion, verifying diff and evidence, merging, writing "implementation status"), and a PASS means the code passes; the director **releases after a spot check** (`git push`) and does not replace devm's review. ④ The machine check adds assertions 4f (file claims) and 4g (review gates), criteria go from ten to twelve. Synchronized changes: the six skills, `README.md`, the new `scripts/file-claim.sh`.
+- **2026-10-24 (user ruling · 20th: mattpocock skills become mandatory)**: ① §1.4 changes from "dependent harness skills" to "**mandatory**" and adds a **role × mandatory skill** table: `director` [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md)+[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md), `pm` [`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md)+[`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md)+[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md), `devm` [`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md)+[`/diagnosing-bugs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/SKILL.md), `devtl` [`/tdd`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md)+[`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md)+[`/diagnosing-bugs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnosing-bugs/SKILL.md), `anatl` [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md)+[`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md), with engineer roles forced via the dispatch prompt. ② **No silent skipping**: install first if unavailable; if still unavailable, mark `[SKILL_UNAVAILABLE]` in the deliverable and report and report to the director; calls must leave a trace (which skill was used, where the output is). ③ Each of the six skills gains a "mandatory skills (mattpocock, must use)" section; `README.md` gains two tables, "role × mandatory skill" and "role × deliverable". ④ The machine check adds assertion 4e (the contract contains "mandatory", and each of the five role skills contains its own mandatory skill names), criteria go from nine to ten.
+- **2026-10-24 (user ruling · 19th: tickets are now split by pm, devm only takes orders and reviews/integrates)**: ① **pm's deliverables expand to four kinds** — PRD, SPEC ([`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md)), **development tickets ([`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md))** and human architecture plus human plan; tickets are tracer-bullet vertical slices, numbered in dependency order, strictly aligned with the SPEC's `spec-seq`, and land in `docs/dev/tickets/`. ② **The owner of `docs/dev/tickets/` becomes pm** (ticket content, numbering, criteria, Files boundaries); **devm only appends an "implementation status" section at the end of the ticket**, without changing criteria, numbering or Files boundaries, and reports missing items to the director for pm to fill in. ③ **devm's role becomes taking orders and integration** — read pm's tickets (already PASSed by the director) → schedule by dependency → self-dispatch `dev-e` or open leader panes by queue depth → review and integrate the department's deliverables; **no splitting tickets, no changing criteria**, and [`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md) is no longer a devm skill. ④ New §4.3 ticket template; the §5.3 gate row changes from "PRD and SPEC" to "PRD / SPEC / tickets". Synchronized changes: `dmt-pm`, `dmt-dm`, `dmt-director`, `dmt-dtl` (tickets are now written by pm), `README.md`, the machine check script (new pm ticket assertion).
+- **2026-10-24 (user ruling · 18th: install and push consolidated in the director, plus push cadence)**: ① **only the director installs** — the previous "manager level only (`director`／`pm`／`devm`／`anam`)" is tightened to **only `director` may execute** (`adb install`／`uninstall`, overwriting device files, `dump_prefs`, `force-stop` and other device write operations); pm／devm／anam／leaders／engineers are all forbidden to install or write, and when an install is needed they report to the director without delegating. ② **`git push` only by the director** — the previous "only devm can push" is void; devm／leaders／engineers must never push. ③ **Push cadence**: the director **pushes at least once per completed ticket** to GitLab (`10.223.36.12:808`), with the push message carrying `{spec-seq}-ticket-{slug}` and a one-sentence result; **at least hourly** it inspects `git status --porcelain` and commits and pushes any new or modified files by explicit path (no need to wait for the ticket to close out). ④ The `ticket code` row in the gate table changes to "after PASS, the director commits and pushes itself"; §5.1 gains a 5th item on push cadence and the former 5th item on merge conflicts shifts to 6th. Synchronized changes: `dmt-director` (new "install and push" section), `dmt-dm` (push step removed, "does not push" added), `README.md`, the machine check script (eight → nine items, new 4d assertion).
+- **2026-10-24 (user ruling · 17th: add product manager pm; director becomes a pure team leader)**: ① **a fifth department manager is added** — product manager `pm` (skill `dmt-pm`, run id `pm`, pane label `pm`), **taking over all product-manager duties and skills that previously belonged to the director**: PRD, SPEC (with item-by-item testable acceptance criteria), human architecture, human plan, plus product skills such as [`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md) and [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md); `pm` has no leader layer and derives `pm-e` product engineer sub-agents directly. ② **The director no longer writes PRD / SPEC / human documents** and keeps only team-leadership duties: taking requirements and acceptance criteria, dispatching, review (product criteria + handing to devm for review), arbitration and **organization maintenance**. ③ **`pm` is created by the director as a right-hand split inside the director's own tab** (herdr 0.9.5 has no `pane create`, so the equivalent of creating a pane is `pane split`); on startup the director **first changes the tab label to `director`, then the pane label to `director`**, then creates `pm`, then creates the `devm` / `anam` tabs. ④ **The tabs and pane labels of `devm` / `anam` are created and maintained exclusively by the director** (inspection, renaming, recreation, re-entering skill commands), and subordinates must not create or rename them. ⑤ **Doorbell channel**: when the peer harness ∈ `codebuddy` / `pi-coding-agent` / `codex` / `opencode2` / `opencode`, prefer `herdr agent prompt`; when it returns something other than `agent_prompted`, or the peer is another harness, fall back to `herdr pane send-text` + `herdr pane send-keys <pane> enter`. ⑥ **Manager-layer path criterion**: `devm` / `anam` with queued tasks **≤2 ⇒ derive engineer sub-agents itself** (no pane); **>2 ⇒ open leader panes** (**prefer the cbc harness**: `codebuddy --permission-mode auto` + `/dmt-dtl` or `/dmt-atl`). ⑦ **The director's and pm's dependency-free work also uses parallel sub-agents** (cbc uses Agent / team, pi uses dynamic workflow); sub-agents only do fact-finding and pre-checks, and the conclusion is written by the person. ⑧ Run ids (pane label / tab label / inbox directory) **stay `director` / `pm` / `devm` / `anam` / `devtl{n}` / `anatl{n}` with no prefix** (user ruling 2026-10-24). Synchronized changes: the six skills, `README.md`, the machine check script (seven → eight items).
+
+- **2026-10-24 (user ruling · 17th appendix: §5.4④ becomes a conjunctive criterion)**: snapshot ownership changes from "inside `new.list`" to **two conjoined conditions** (① inside this window's `new.list`; ② `build_sha256` identical to the rest of the window). Basis = anam 014 (in the 004 window one old-build `a676c083` snapshot was mixed into the 9 `new.list` entries: frames=172／window_ms=30106／33.8 s earlier; it was removed, leaving 14 evidence files, manifest sha `0404d916…`). A reading characteristic is also noted: within this window the 8 `detect_ms_median` values climbed monotonically from 85.42 to 98.46 (+15%) in 20 seconds ⇒ **single-point snapshots are not interchangeable**, and A/B must compare the same frame range or the same position within the same window.
+- **2026-10-24 (user ruling · 16th: §5.4 adds snapshot ownership discipline)**: §5.4 gains a 4th item — **snapshots must be inside this window's `new.list`** (otherwise ⇒ cross-round residue, forbidden for any reconciliation); the former 4th item on install permission shifts to 5th. Basis = anam 013 (the 004 original mistakenly used the cross-round residue snapshot `67528008`; absolute values 99.6／107.51 → **86／93 ms**, fps 0.76 → **1.79**; f=92.7% and the conclusion are unchanged).
+- **2026-10-24 (user ruling · 15th: §5.4 adds install permission + identity gate and push wording)**: ① §5.4 gains a 4th item — **install permission extends only to manager level** (`director`／`devm`／`anam`; leaders and engineers must not install or write to the device; after installing, always report `sha256` + `lastUpdateTime` + empty `pidof`). ② **The identity gate role set adds the five dmt roles** (`director`／`devm`／`anam`／`devtl`／`anatl`), to be landed by T4 (ticket T4-e); before landing, the director temporarily commits as `p00292(pm)`. ③ **Push wording**: routine pushes are still done by devm; **under a direct user instruction the director may push on its behalf**, and must note it in the report (first proxy push on 2026-10-24: GitLab + GitHub).
+- **2026-10-24 (user ruling · 14th: add the research evidence directory)**: `docs/analyst/evidence/{research-seq}-{slug}/` is registered as the landing point for anam's **primary evidence** (sample artifacts／raw logs／manifest), with the same number as the report, and must carry `manifest.txt` (filename + size + sha256 + sampling command). Reason = `docs/research/evidence/` was removed during the user's cleanup, and without a new landing point the research readings would not be reproducible.
+- **2026-10-24 (user ruling · 13th: add §5.4 reading discipline)**: ① the dump switch is registered with the window, and **fps / timing comparisons from dump-on windows are void** (measured: sha256 costs 13.3% of whole-process CPU, detect_fps 0.76 vs 3.86 in production); ② absolute values must not be compared across builds, and ratios must carry a banner; ③ after force-stop the app counts as stopped only when pidof is empty, and a leader's report may not be taken at face value. Basis = anam 004 (f re-measurement + two methodology warnings).
+- **2026-10-24 (user ruling · 12th: unify the doorbell channel + leader panes stack vertically)**: ① Doorbells always use `herdr agent prompt <pane> '<short sentence>'` (submits with Enter built in; a return of `"type":"agent_prompted"` means delivered); **the codebuddy pane works the same way** — measured 2026-10-24: it returns `agent_prompted`, the input box stays empty and the agent goes into processing immediately; `send-text + send-keys enter` **is downgraded to a fallback channel**. ② Leader pane layout: **the 1st opens to the right of the manager pane; from the 2nd on, each opens below the previous leader pane** (one vertical column on the right, not horizontal); the capacity item becomes "height divided evenly, manager width unchanged, ≤3 leaders recommended". Synchronized changes: `dmt-am` / `dmt-dm` / `dmt-dtl` / `dmt-atl`.
+- **2026-10-24 (user ruling · 11th: automated manager-layer startup)**: the team startup order changes to **the director bringing up the manager layer fully automatically** — after creating the `devm` / `anam` tabs and labeling their root panes, it **starts on their behalf** `codebuddy --permission-mode auto` (readiness criterion `auto mode on`), then enters `/dmt-dm` and `/dmt-am` in each pane to load the role skills; **the user is no longer asked to start the harness manually in the manager tabs**. The user wrote `codebuddy --permission auto`, but the measured CLI parameter is `--permission-mode <mode>` (choices include `auto`, see `codebuddy --help`), so the measured parameter is used. Synchronized changes: `dmt-director/SKILL.md` (the tab-creation section gains the three startup actions).
+- **2026-10-24 (user ruling · 10th: identity becomes pane label + leader panes move into the manager tab)**: ① **the earlier "self-operated / subcontracted" dual path is reverted** — the manager layer keeps only one path, **opening leader panes inside its own tab** (leaders then open engineer sub-agents); engineers are always sub-agents of leaders and managers do not dispatch dev-e directly; the whole of §4.0 is deleted, and §1.1 rules 2/3/5, the §4 workflow, §5.2, §5.3 and machine check 4b are reverted accordingly. ② **Identity changes from "tab label + first pane in the tab" to "pane label"**: the pane label matches the role/instance name and is unique in the workspace; **position within the tab is no longer relied on** (measured: after `pane swap` the `pane list` order flips immediately, and "the first pane" would silently point at the wrong person). ③ **Leader panes open inside the manager's own tab**: `herdr pane split "$HERDR_PANE_ID" --direction right --no-focus` + `pane rename`, with no tab created; the tab degrades to a visual grouping. ④ **Leader panes are started on their behalf by the creator**: `pane send-text 'codebuddy --permission-mode auto'` + `pane send-keys enter`, with readiness criterion `wait-output --source visible --match 'auto mode on'`; leaders therefore **do not** go through the `shift+Tab` permission-mode routine (that only applies to sessions the user started manually). ⑤ **Closing switches to `herdr pane close`**, and **`herdr tab close` is explicitly forbidden** — leaders share the manager's tab, and closing the tab would kill the manager and the batch's other leaders. ⑥ **Identity self-healing**: every role checks the label of `$HERDR_PANE_ID` after startup and runs `pane rename` on mismatch; leaders must not identify themselves via `tab list`. ⑦ Capacity note: ≤2 leader panes per tab recommended; beyond that, batch or use `pane zoom`. Synchronized changes: five skills (`dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl` and `dmt-director`), `README.md`, the machine check script.
+- **2026-10-22 (user ruling · organizational adjustment)**: the project is named **dmt**, and the organization is fixed as a **four-level hierarchy** `director → department manager → leader → engineer` — ① the top-level `director` (director, also product manager) has only `devm` and `anam` as direct reports; ② development manager `devm` commands n development leaders `devtl{n}` (same label, created on demand by devm with `herdr tab create --label`), and leaders command development engineers `dev-e`; ③ analysis manager `anam` commands n analysis leaders `anatl{n}`, and leaders command analysis engineers `ana-e`; ④ every role communicates only with its direct superior and subordinates, and cross-department matters are relayed through the director.
+- **2026-10-21 (user ruling)**: ① The PRD category is **revived**, with the landing path changed from `docs/prd/` to `docs/pd/prd/` (`docs/prd/` is void); ② `docs/dev/arch/` is added — the landing point for **software design architecture**, written by devm and reviewed by the director, named `{seq}-arch-{slug}-{YYMMDD-HHMM}--v{N}.md`.
+- **2026-10-21 (user ruling · second)**: directory structure reshuffled — ① the inbox moves to the project root `inbox/<director|devm|anam>/` and no longer sits under `docs/` (`.gitignore` uses `inbox/*/`); ② SPEC moves from `docs/spec/` to `docs/pd/spec/`; ③ tickets move from `docs/tickets/` to `docs/dev/tickets/`; ④ `docs/human/human-arch/` and `docs/human/human-plan/` are added (both written by the director), and `docs/dev/arch/` is void.
+- **2026-10-21 (user ruling · third)**: sequence numbers are split by deliverable category — PRD `{prd-seq}`, research report `{research-seq}`, human architecture `{human-arch-seq}`, human plan `{human-plan-seq}`, each independent and accumulating within its category; SPEC and tickets still share `{spec-seq}`; inbox messages keep the `{seq}` message serial.
+- **2026-10-21 (user ruling · fourth)**: directories are **checked and filled in by the director at initialization** (new §3.1, idempotent command + completion criterion `ALL_PASS`); anam / devm do not create deliverable directories and report to the director when one is missing.
+- **2026-10-22 (user ruling · fifth)**: directory renames — ① the research report directory `docs/research/` becomes `docs/analyst/` (still owned by anam); ② `docs/user/` becomes `docs/human/`, with `user-arch/`→`human-arch/` and `user-plan/`→`human-plan/` (still owned by the director); ③ the machine check script `check-pda-doc-paths.sh` is renamed to `check-dmt-doc-paths.sh`, with `PDA_SKILLS_DIR`→`DMT_SKILLS_DIR` and the negative sample `docs/not-a-pda-output-dir/`→`docs/not-a-dmt-output-dir/`.
+- **2026-10-22 (user ruling · sixth)**: the inbox protocol is simplified — the recipient loads the message into its context window on the doorbell reminder, **sends no acknowledgement** and deletes it once read; delivery is judged by the doorbell being delivered successfully, no longer by an acknowledgement.
+- **2026-10-22 (user ruling · eighth)**: **the leader-layer parallelism wording is unified and given a testable criterion**. Previously `devtl` said "**may** run tickets in parallel" while `anatl` said "**must** be parallel" — inconsistent wording, and the leader layer, which most needs resource constraints, was the one left unstated. ① Step 3 of `devtl` / `anatl` is unified to the same sentence: **dependency-free units must run in parallel and should be packed as full as possible** (dispatch concurrently within one reply, dynamic workflow `runs.all` first, multiple subagents second; end the round immediately after dispatch and do not poll); **only** dependency / shared files / shared build target / sequential acceptance relationships justify serial execution, and **serial execution must state the reason in the report**; concurrency is bounded by resources (development leaders: **no concurrent builds in the same worktree**; analysis leaders: the same input file / the same device / the same REA session must not run concurrently). ② `team.md` §5.2 gains the **leader-layer testable criterion** "dependency-free units ≥2 ⇒ must dispatch concurrently, with exceptions only when a serial justification is given in the report". ③ The machine check adds three static assertions.
+- **2026-10-22 (machine-check fix, not a user ruling)**: fixes the self-contradiction in the §7 negative-sample assertion — the original script used `grep 'docs/not-a-dmt-output-dir/' "$CONTRACT"` to decide whether a bad path was mistakenly treated as existing, while the §8 change log (fifth ruling) **must** preserve that negative-sample name ⇒ the assertion was permanently red (the `HEAD` version before the change also reported `HAS_FAIL`, so this was a **pre-existing defect**). It now checks **only the §3 "sole landing location" registry table** (restricted to table rows with `grep -E '^\|'`), so historical traces no longer cause false positives while the assertion still has teeth (writing a bad path into the registry table still reports FAIL).

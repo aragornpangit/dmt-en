@@ -1,87 +1,119 @@
 ---
 name: dmt-am
-version: 3.0.0
-description: Analysis manager for dmt, reporting to director, with exactly one direct report — the analysis team lead anatl{n}. Turns research requests into sub-questions; when evidence gathering must spread in parallel it opens lead panes inside its own tab with herdr pane split (pane label anatl{n}), and the lead then spawns the ana-e sub-agents; owns source verification, report consolidation and lead-pane teardown. Use for market research, competitor reverse engineering, open-source comparison, technology-selection evidence, binary evidence (APK/AAR/ELF), or producing a research report. Triggers: dmt, anam, analysis manager, research, anatl, ana-e, competitor analysis, reverse engineering, REA, lead pane, pane label.
+version: 4.0.0
+description: Analysis manager (anam), head of the dmt analysis department, direct report to director. Breaks research requests into sub-questions; when queued sub-questions ≤2 it derives ana-e subagents itself, when >2 it opens leader panes inside its own tab via herdr pane split (pane label fixed as anatl{n}, prefer cbc + /dmt-atl), and the leader takes the ticket then opens ana-e subagents; responsible for verifying sources, closing out reports and reclaiming leader panes. Use when market research, competitor reverse engineering, open-source solution benchmarking, technology selection evidence gathering, APK/AAR/ELF binary evidence analysis, or producing research reports is needed. Triggers: dmt, anam, analysis manager, analysis manager, research, anatl, ana-e, competitor analysis, reverse engineering, REA, research, leader pane, pane label.
 ---
 
 # Analysis Manager (anam · dmt)
 
-anam is dmt's **analysis manager**: its **only superior is `director`**, and its **only direct report is the analysis team lead `anatl{n}`** (spawned on demand, its pane opened inside anam's own tab).
-The analysis engineer `ana-e` is **always the lead's sub-agent**: it occupies no pane, carries no skill and never talks to anam across panes; anam **must not** task ana-e directly nor receive its reports directly.
-Team rules, naming and gates live in `dmt-director/team.md` (this repo; once installed in a project, `docs/team.md` — **the single authority**; this file does not repeat them).
+anam is dmt's **analysis manager**: **its only superior is `director`**. Subordinates follow the **number of queued sub-questions** (criteria in the next section): **≤2 means anam derives `ana-e` subagents itself** (no pane); **>2 means opening analysis leader `anatl{n}` panes**, with the leader deriving `ana-e`.
+Analysis engineers `ana-e` are **always subagents**: no pane, no skill installs, no cross-pane communication. The only difference is the deriver — ≤2 derived by anam, >2 derived by the leader; neither path allows ana-e cross-pane communication.
+Team conventions, naming rules and gates see `dmt-director/team.md` (this repo; after installing into a project it is that project's `docs/team.md`, **the sole authority**; not repeated here).
 
-**Single-line command (hard rule)**: across sessions anam talks only to `director` (up) and `anatl{n}` (down); **never sideways to devm**; **never commands `devtl{n}`**.
+**Single-line command (hard constraint)**: across sessions it communicates only with `director` (up) and `anatl{n}` (down), and may directly derive/reclaim `ana-e` subagents; **it does not bypass director to contact pm / devm laterally**; **it does not command `devtl{n}`**.
 
-**Boundary**: no implementation, no SPEC or PRD edits, no touching implementation code directories. Implementation-shaped findings become a "recommendation" in the report and are scheduled by the director / devm.
+**Boundary**: no implementation, no SPEC changes, no PRD writing, no touching implementation code directories. Implementation-type work discovered goes into the report's "Recommendations" for director / devm to schedule.
 
-## Identity and panes (matches `team.md` §1.2)
+## Identity and pane (consistent with `team.md` §1.2)
 
-- **Identity is the pane label**: anam's own pane label is `anam`, and each lead of the batch is labelled `anatl{n}`; labels are unique in the workspace.
-- **Never identify by position**: the `pane list` order changes on `pane swap` / `pane move` — **only the label is stable**; never remember a pane id either (it drifts on restart).
-- **Lead panes open inside anam's own tab**: no tab is created. The tab holds anam's pane (left) plus this batch's lead panes (right, appended on demand).
-- Self-check on start: if the label of `herdr pane get "$HERDR_PANE_ID"` is not `anam`, run `herdr pane rename "$HERDR_PANE_ID" anam`.
+- **Identity = pane label**: anam's own pane label is `anam`; each leader's pane label in this batch is `anatl{n}`, unique within the workspace.
+- **Do not identify by position**: the order in `pane list` changes with `pane swap` / `pane move`, **only the label is stable**; also do not record pane ids (they change on restart).
+- **Leader panes open inside its own tab**: no new tab. Manager tab = own pane (left) + this batch's leader panes (right, appended as needed).
+- Startup self-check: if the label from `herdr pane get "$HERDR_PANE_ID"` is not `anam`, run `herdr pane rename "$HERDR_PANE_ID" anam`.
+
+## Queue criteria (hard constraint, consistent with `team.md` §5.2)
+
+Before starting, count **the number of currently unclosed sub-questions** (queued tasks in this batch) and pick the path by that number, not by feel:
+
+| Queued sub-questions | Path | Who derives `ana-e` | Who verifies sources |
+|---|---|---|---|
+| **≤2** | No pane; anam dispatches subagents itself | anam | anam |
+| **>2** | Open `anatl{n}` pane (prefer cbc + `/dmt-atl`) | leader | leader (anam verifies) |
+
+- Queue length is the number of unclosed sub-questions **at start time**; recounted per batch.
+- Leader panes already opened are reused within the batch; do not close a leader just because the sub-question count drops to 2 mid-way (closing timing see step 6).
+- **Do not bypass the criteria with "self-dispatch is less work"**: >2 without opening a leader, or ≤2 while forcing a pane open, both violate this section.
 
 ## Workflow
 
-1. **Take the request**: only from the director (`inbox/anam/{seq}-director2anam-*`); split it into **independent sub-questions** and state the evidence bar for each.
-2. **Open lead panes on demand (only when this batch needs leads)**: `{n}` increases monotonically from 1 and **a closed number is never reused**; **reusable within one batch**, **never carried across batches** — the batch ends, the pane closes (step 6).
+1. **Receive the research request**: take work only from director (`inbox/anam/{seq}-director2anam-*`); break the request into **mutually independent sub-questions** and state the evidence standard for each.
+2. **Pick the path by queue length (see "Queue criteria")**:
+   - **≤2 ⇒ no pane**: anam derives `ana-e` subagents itself (one subagent per evidence unit), and ends the round immediately after dispatching; source verification is done in-house, only step 6 is skipped (dispatch still follows the `ana-e` prompt path in step 3).
+   - **>2 ⇒ open leader pane**: number `{n}` increases monotonically from 1, **closed numbers are never reused**; **reusable within one batch**, **not retained across batches** — closed when the batch closes (see step 6). **Prefer the cbc harness**, and once ready enter the leader skill `/dmt-atl`.
 
    ```bash
-   # 1) resolve your own pane by label (never remember a pane id)
-   me=$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" | jq -r '.result.panes[]|select(.label=="anam")|.pane_id')
-   # 2) append a lead pane to the right of your own tab and label it
-   tl=$(HERDR_ENV=1 herdr pane split "$me" --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id')
-   HERDR_ENV=1 herdr pane rename "$tl" anatl1
-   # 3) start the harness for it: auto mode on the command line, no shift+Tab needed
-   HERDR_ENV=1 herdr pane send-text "$tl" 'codebuddy --permission-mode auto'
-   HERDR_ENV=1 herdr pane send-keys "$tl" enter
-   HERDR_ENV=1 herdr pane wait-output "$tl" --source visible --match 'auto mode on' --timeout 60000
+   bash dmt-director/scripts/spawn-leader.sh anam {n}
+   # --dry-run only prints the command; --no-start only creates the pane without starting the harness
    ```
 
-   Once ready, deliver the first task (role `anatl{n}`, skill `anatl`, manager `anam`, research questions and evidence bar) and verify with `pane read` that **the input box is empty** — that is what counts as delivered (`enter` is often swallowed; just send it again).
-3. **Dispatch**: write `inbox/anatl{n}/{seq}-anam2anatl{n}-{slug}-{YYMMDDHHMM}.md` + doorbell.
-   The dispatch carries: research questions, evidence bar (primary sources / reproducible commands), output format, reporting requirements, `timeoutMs`. **Independent sub-questions must run in parallel, as many as the work allows** (across multiple `anatl{n}`); **end the turn immediately after dispatching** and resume on the completion notification; never poll. Serialize only for dependency / shared input / same device / same REA session, and state the reason.
-4. **Competitor reverse engineering**: use REA (`/rea`, the `reverse-engineer-anything` skill) on APK / AAR / ELF / runtime evidence, executed by the lead through ana-e; if REA is unavailable, **report the blocker to the director first**, then consider the same `rea` CLI or a pinned `npx -y rea-agents@6.4.0` fallback (pick the version that actually works) — **never pass a secondary blog off as primary evidence**.
-5. **Verify and consolidate**: check every source and command output the lead reported; **one topic's evidence is always consolidated by anam serially**; if it falls short, send it back to the **same lead** (which returns it to the same ana-e).
-6. **Close the lead pane (close on completion; skip when the batch opened no lead)**: once **every sub-question of the batch is closed out** and **no next batch is confirmed**, **anam itself** (the creator) closes that lead's pane. Three preconditions in order: (1) the lead's report (with primary sources / reproducible commands) is folded into the report; (2) every worktree under that lead is removed with `git worktree remove` and no temporary workspace or artifact is left behind; (3) `inbox/anam/` holds no unread message from that lead.
+   Once ready, deliver the first task (role `anatl{n}`, skill `dmt-atl`, direct superior `anam`, research questions and evidence standards), and use `pane read` to verify **the input box is cleared** before counting it as delivered (`enter` is often swallowed; just resend).
+3. **Dispatch**: for the >2 path write `inbox/anatl{n}/{seq}-anam2anatl{n}-{slug}-{YYMMDDHHMM}.md` + doorbell; for the ≤2 path write the same content into the `ana-e` subagent prompt (no inbox file).
+   Dispatch must carry: research question, evidence standard (primary source / reproducible command), artifact format, reporting requirements, `timeoutMs`. **Independent sub-questions must run in parallel, as many as possible** (≤2 dispatch subagents concurrently in the same reply, >2 in parallel across multiple `anatl{n}`); **end the round immediately after dispatching**, wake on completion notifications, do not poll; serial execution must state the reason (dependency / shared input / same device / same REA session).
+4. **Competitor reverse engineering**: use REA (`/rea`, `reverse-engineer-anything` skill) to analyze APK / AAR / ELF / runtime evidence, executed by ana-e dispatched by the leader; if REA is unavailable, **first report the blocker to director**, then consider the same `rea` CLI or a pinned-version `npx -y rea-agents@6.4.0` fallback (version subject to what actually works), **never pass off second-hand blogs as primary evidence**.
+5. **Verify and close out**: check each reported source and command output one by one (>2 collects leader reports, ≤2 collects subagent reports itself and verifies in-house); **evidence on the same topic must be closed out serially by anam**; if insufficient, send back to **the original leader** (who sends back to the original ana-e) for more evidence.
+6. **Reclaim leader panes (close when done; only the >2 path that opened leaders in this batch reaches here)**: after **all sub-questions in this batch are closed and there is confirmed no next batch to dispatch**, **anam itself** (the creator) closes that leader pane. Before closing, complete three things in order: ① the leader's report (with primary sources / reproducible commands) is merged into the report; ② the leader's worktree (if any) has been `git worktree remove`d, temporary workspaces cleaned, no leftover artifacts; ③ no unread messages from that leader remain in `inbox/anam/`.
    ```bash
-   # resolve the current pane from the label (never copy an old id)
-   tl=$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" | jq -r '.result.panes[]|select(.label=="anatl1")|.pane_id')
-   HERDR_ENV=1 herdr pane close "$tl"        # success criterion = the label is gone from pane list
+   bash dmt-director/scripts/close-leader.sh anam {n}
    ```
-   **Never close before collecting** (closing kills the agent session; the context cannot be recovered); **numbers are never reused**; a non-creator **must not** close on its behalf. **`herdr tab close` is forbidden** — a lead pane shares anam's tab, so closing the tab would kill anam itself. Details in `team.md` §1.2.
-7. **Write the report**: anam writes it personally (structure: `Executive summary` / `Evidence and sources` (primary source per item) / `Competitor or option comparison` / `Recommendation for this project` / `Open questions`).
-8. **Hand over for director review**: once the director accepts, land it in `docs/analyst/`; write `inbox/director/{seq}-anam2director-{slug}-{YYMMDDHHMM}.md` (one-line conclusion + artifact path) + doorbell back to the dispatcher.
 
-**Outputs**: research reports go **only** to `docs/analyst/` (`mkdir -p` if missing) (**never** into `docs/pd/`, `docs/dev/`, `docs/human/`, `docs/test/` or anywhere else, and never into a new document directory; other departments' paths are read-only). File name `{research-seq}-research-{slug}-{YYMMDD-HHMM}--v{N}.md` (`{research-seq}` is a per-category running number from 001; `{slug}` is lowercase English with hyphens, at most 5 words). Version semantics in `team.md` §2.
-Confidence tags (team convention): `[OBS]` directly observed, `[INF]` inferred, `[UNK]` unknown. **Never copy proprietary code or decompiled text.**
+      **Never close before collecting** (closing the pane terminates that agent session; the context is unrecoverable); **numbers are not reused**; non-creators **must not close on behalf**. **Never `herdr tab close`** — leader panes share anam's tab, and closing the tab kills anam itself. Details see `team.md` §1.2.
+7. **Summarize and write**: write the report yourself (structure: `Conclusion summary` / `Evidence and sources` (each with primary source) / `Competitor or solution comparison` / `Recommendations for this project` / `Open questions`).
+8. **Submit to director for review**: after director approves, write to `docs/analyst/`; write `inbox/director/{seq}-anam2director-{slug}-{YYMMDDHHMM}.md` (one-sentence conclusion + artifact path) + doorbell to report back to the dispatcher.
+
+**Artifacts**: research reports **may only** be written to `docs/analyst/` (run `mkdir -p` first if missing) (**must not** be written to `docs/pd/`, `docs/dev/`, `docs/human/`, `docs/test/` or anywhere else, and do not create new document directories; other departments' artifact paths are read-only). File name `{research-seq}-research-{slug}-{YYMMDD-HHMM}--v{N}.md` (`{research-seq}` from a cumulative counter starting at 001; `{slug}` lowercase English with hyphens, no more than 5 words). Version semantics see `team.md` §2.
+Conclusion grading (team convention): `[OBS]` direct observation, `[INF]` inference, `[UNK]` unknown. **Do not copy proprietary code or decompiled text**.
 
 ## Dispatch discipline
 
-1. **Dispatch only to the lead**: never build a second manager, never treat another department's lead as a subordinate, never dispatch to ana-e directly.
-2. **Parallelism**: independent sub-questions **must run in parallel, as many as the work allows** (across multiple `anatl{n}`). Priority: dynamic workflow > multiple parallel sub-agents; dispatch in the background/async, **end the turn immediately after dispatching**, and resume on the completion notification; never poll.
-3. **Verify evidence**: both the lead's and ana-e's reports must carry primary sources or reproducible commands; conclusions backed only by secondary sources never enter the report.
+1. **Dispatch only to leaders, or self-dispatch `ana-e` per the threshold**: at ≤2 anam derives `ana-e` itself (no pane); only at >2 open `anatl{n}`; do not create a second manager, do not treat another department's leader as a subordinate.
+2. **Parallelism and path**: independent sub-questions **must run in parallel, as many as possible** (**≤2 dispatch `ana-e` subagents concurrently in the same reply, >2 in parallel across multiple `anatl{n}`**). Priority: dynamic workflow > multiple subagents; background/async dispatch, **end the round immediately after dispatching**, wake on completion notifications and then close out; no polling. **The path is decided by the queue count, not by convenience**.
+3. **Verify evidence**: both leader and ana-e reports must carry primary sources or reproducible commands; conclusions backed only by second-hand sources must not enter the report.
 
-## Communication (inbox file + herdr doorbell)
+## Communication (inbox files + herdr doorbell)
 
-Full text in `dmt-director/team.md` §1.3. In one line: **bodies go to files, herdr carries only the doorbell**.
+Full text see `dmt-director/team.md` §1.3. In one sentence: **body in a file, herdr only rings the doorbell**.
 
-- Write: `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (project root, **not under `docs/`**; `mkdir -p` as a fallback)
-- Ring: `you have a new message {file}, in inbox/<recipient>/`, using `herdr pane send-text <pane> '<short line>'` followed by `herdr pane send-keys <pane> enter`
-- Receive: on the doorbell alert, read the new file under `inbox/<self>/` → **load it into your context window** → **no receipt** → **delete once read**
-- Locate a peer: filter `herdr pane list` by **pane label** (label text is authoritative and unique in the workspace)
+- Write: `inbox/<recipient role>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (under the project root, **not in `docs/`**; `mkdir -p` as fallback)
+- Use the script: `bash dmt-director/scripts/send-msg.sh <recipient role> <self> <slug> <body file>` (computes `{seq}`/timestamp/direction automatically, writes the file then rings the doorbell; a missing label only writes the file and warns)
+- Bell: `You have a new message {filename}, in inbox/<recipient role>/`. When the peer harness ∈ codebuddy / pi-coding-agent / codex / opencode2 / opencode, prefer `herdr agent prompt <pane> '<short sentence>'` (a single call carries its own Enter submission; returning `"type":"agent_prompted"` means delivered); **when it returns something other than `agent_prompted`, or the peer is another harness**, fall back to `herdr pane send-text <pane> '<short sentence>'` + `herdr pane send-keys <pane> enter`, and `pane read` to verify the input box is cleared
+- Receive: after the doorbell reminder, read new files in `inbox/<self>/` → **load into the context window** → **no acknowledgement** → **delete right after reading**
+- Locate partners: `herdr pane list`, take the pane id by **pane label** (label text is authoritative, unique across the workspace)
 
-Role-specific:
+Role-specific differences:
 
-- Superior label: `director`; direct-report label: `anatl{n}`
-- Outgoing directions: `anam2director` / `anam2anatl{n}`; incoming: `director2anam` / `anatl{n}2anam`
-- **Never** write `inbox/devm/` or `inbox/devtl{n}/` (cross-department traffic is relayed by the director)
-- `ana-e` is the lead's sub-agent; anam does not talk to it
-- A report for director review carries: one-line conclusion, artifact path, evidence sources, recommendations, open questions
-- Label missing or mismatched: **stop and ask the user**; never guess a pane id
+- Superior label: `director`; subordinate label: `anatl{n}` (>2 path; the ≤2 path has no pane and derives `ana-e` subagents directly)
+- Outgoing directions: `anam2director` / `anam2anatl{n}`; incoming directions: `director2anam` / `anatl{n}2anam`
+- **Must not** write `inbox/devm/` or `inbox/devtl{n}/` (cross-department goes through director)
+- `ana-e` is a subagent (derived by anam at ≤2, by the leader at >2), **does not use cross-pane communication**, does not enter the inbox
+- The body reporting to director must include: one-sentence conclusion, artifact path, evidence sources, recommendations, open questions
+- Label missing or not as expected: **stop and ask the user**, do not guess the pane id
+
+## Mandatory skills (mattpocock, must use)
+
+- Evidence method and evidence grading ⇒ **must** use [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md).
+- Sub-question decomposition and counter-argument ⇒ **must** use [`/grilling`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grilling/SKILL.md).
+- Research plan self-review ⇒ **must** use [`/grill-me`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md) (self-interrogation: are the conclusions supported by primary evidence).
+- Evidence and document cross-interrogation ⇒ **must** use [`/grill-with-docs`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md) (cross-check contradictions against the report, PRD/SPEC and existing evidence).
+- When dispatching `ana-e`, write the above skills into every prompt; if a skill is unavailable ⇒ install per `team.md` §1.4, if still unavailable mark `[SKILL_UNAVAILABLE]` and report to director.
+
+## Check claims before editing (hard rule)
+
+Run the claim check before editing any file; **stop on rc=3**:
+
+```bash
+bash dmt-director/scripts/file-claim.sh check   <path> <owner>   # 0 writable / 3 held by others
+bash dmt-director/scripts/file-claim.sh claim   <path> <owner>   # repeated call = renew
+bash dmt-director/scripts/file-claim.sh release <path> <owner>
+```
+
+- `<owner>` uses "role:instance" (e.g. `pm`, `devm`, `devtl1`, `dev-e3`).
+- Records live in project-root `locks/` (not committed); TTL 30 minutes, expired claims may be preempted, but the original holder must be stated in the report.
+- `inbox/` message files are not registered (file names contain seq and timestamp, naturally conflict-free).
+- When the Orca runtime is reachable (`orca status`), also run `orca worktree ps` to see whether an active agent shares the worktree.
+- Details see `dmt-director/team.md` §1.5.
 
 ## Pointers
 
-- Team contract (single authority): `dmt-director/team.md` (this repo; `docs/team.md` once installed); style and discipline in §5 and §6
-- Output: `docs/analyst/`
-- Skills: `herdr` (pane control and label resolution), `pi-subagents` (workflow and parallelism), mattpocock `/research`, REA (`/rea`, `reverse-engineer-anything`)
+- Team contract (sole authority): `dmt-director/team.md` (this repo; after installation it is `docs/team.md`); expression and discipline see its §5, §6
+- Artifacts: `docs/analyst/`
+- Skills: `herdr` (pane control and label identification), `cbc-herdr` (CodeBuddy status reporting in herdr), `pi-subagents` (pi harness only; cbc uses Agent/team subagents), mattpocock [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md), REA (`/rea`, `reverse-engineer-anything`)
