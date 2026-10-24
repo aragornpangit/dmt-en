@@ -1,5 +1,5 @@
 ---
-name: dmt-devm
+name: dmt-dm
 version: 3.0.0
 description: Development manager for dmt, reporting to director, with exactly one direct report — the development team lead devtl{n}. Splits a SPEC into development tickets; when work must spread in parallel it opens lead panes inside its own tab with herdr pane split (pane label devtl{n}), and the lead then spawns the dev-e sub-agents; owns acceptance, integration, lead-pane teardown and push. Use when a SPEC must be split into tickets, when tickets must be dispatched and accepted, when defects must be fixed, or when reviewed code must be pushed. Triggers: dmt, devm, development manager, ticket, to-tickets, worktree, devtl, dev-e, lead pane, pane label.
 ---

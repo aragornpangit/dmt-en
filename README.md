@@ -6,10 +6,10 @@ Role skills for the dmt team: **the single maintenance point for the team defini
 | Role | Skill name | Runtime id (pane label) | Reports to | Direct reports | Responsibility in one line |
 |---|---|---|---|---|---|
 | Director (team lead + product manager) | `dmt-director` | `director` | Human | `devm`, `anam` | Take requirements, set acceptance criteria, write the PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
-| Development manager | `dmt-devm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director approval |
-| Analysis manager | `dmt-anam` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate research reports |
-| Development team lead | `dmt-devtl` | `devtl1`, `devtl2` … | `devm` | `dev-e` (sub-agent) | Created on demand by the manager; create the worktree, dispatch development engineers, check the diff, report to devm |
-| Analysis team lead | `dmt-anatl` | `anatl1`, `anatl2` … | `anam` | `ana-e` (sub-agent) | Created on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify sources, report to anam |
+| Development manager | `dmt-dm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director approval |
+| Analysis manager | `dmt-am` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate research reports |
+| Development team lead | `dmt-dtl` | `devtl1`, `devtl2` … | `devm` | `dev-e` (sub-agent) | Created on demand by the manager; create the worktree, dispatch development engineers, check the diff, report to devm |
+| Analysis team lead | `dmt-atl` | `anatl1`, `anatl2` … | `anam` | `ana-e` (sub-agent) | Created on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify sources, report to anam |
 
 **Display names**: prose, reports and logs use Director / Development manager / Analysis manager / Development team lead / Analysis team lead (with the instance number, e.g. "lead 1"); **pane labels, inbox folders, direction codes and commands use the ids** (`director` / `devm` / `anam` / `devtl{n}` / `anatl{n}` / `dev-e` / `ana-e`). Never mix the two: `inbox/devtl1/` is a path, "lead 1 reported …" is prose.
 
@@ -30,25 +30,25 @@ dmt/                                    # one folder per role
 │   ├── team.md                         # team contract (single authority)
 │   ├── README.md                       # pointer to root README.md
 │   └── scripts/check-dmt-doc-paths.sh  # output-path checker
-├── dmt-devm/SKILL.md                      # Development manager
-├── dmt-anam/SKILL.md                      # Analysis manager
-├── dmt-devtl/SKILL.md                     # Development team lead (devtl{n})
-└── dmt-anatl/SKILL.md                     # Analysis team lead (anatl{n})
+├── dmt-dm/SKILL.md                      # Development manager
+├── dmt-am/SKILL.md                      # Analysis manager
+├── dmt-dtl/SKILL.md                     # Development team lead (devtl{n})
+└── dmt-atl/SKILL.md                     # Analysis team lead (anatl{n})
 ```
 
 ## Installing into a project
 
-The folder name in this repo is the skill name (`dmt-director` / `dmt-devm` / `dmt-anam` / `dmt-devtl` / `dmt-anatl`); **copy them under the same names** into the skill directory. The runtime ids (`devm` and friends) only label panes and inbox folders and do not change with the skill name.
+The folder name in this repo is the skill name (`dmt-director` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl`); **copy them under the same names** into the skill directory. The runtime ids (`devm` and friends) only label panes and inbox folders and do not change with the skill name.
 
 ```bash
-mkdir -p <project>/.agents/skills/{dmt-director,dmt-devm,dmt-anam,dmt-devtl,dmt-anatl} <project>/scripts \
+mkdir -p <project>/.agents/skills/{dmt-director,dmt-dm,dmt-am,dmt-dtl,dmt-atl} <project>/scripts \
          <project>/docs/{pd/{prd,spec},dev/tickets,analyst,human/{human-arch,human-plan}} \
          <project>/inbox/{director,devm,anam}
 cp dmt-director/SKILL.md  <project>/.agents/skills/dmt-director/
-cp dmt-devm/SKILL.md     <project>/.agents/skills/dmt-devm/
-cp dmt-anam/SKILL.md     <project>/.agents/skills/dmt-anam/
-cp dmt-devtl/SKILL.md    <project>/.agents/skills/dmt-devtl/
-cp dmt-anatl/SKILL.md    <project>/.agents/skills/dmt-anatl/
+cp dmt-dm/SKILL.md     <project>/.agents/skills/dmt-dm/
+cp dmt-am/SKILL.md     <project>/.agents/skills/dmt-am/
+cp dmt-dtl/SKILL.md    <project>/.agents/skills/dmt-dtl/
+cp dmt-atl/SKILL.md    <project>/.agents/skills/dmt-atl/
 cp dmt-director/team.md <project>/docs/team.md
 cp dmt-director/scripts/check-dmt-doc-paths.sh <project>/scripts/
 printf 'inbox/*/\n' >> <project>/.gitignore        # the inbox is a runtime channel, not versioned
@@ -58,7 +58,7 @@ To follow updates from this repo, use **relative symlinks** instead (recommended
 
 ```bash
 ln -s ../../../dmt/dmt-director <project>/.agents/skills/dmt-director
-ln -s ../../../dmt/dmt-devm     <project>/.agents/skills/dmt-devm   # dmt-anam / dmt-devtl / dmt-anatl likewise
+ln -s ../../../dmt/dmt-dm     <project>/.agents/skills/dmt-dm   # dmt-am / dmt-dtl / dmt-atl likewise
 ln -s ../../dmt/dmt-director/team.md <project>/docs/team.md
 ln -s ../../dmt/dmt-director/scripts/check-dmt-doc-paths.sh <project>/scripts/check-dmt-doc-paths.sh
 ```
