@@ -67,7 +67,7 @@ echo
 echo "== 3) the team-lead close action must be registered (close on completion; creator only; panes, never tabs) =="
 check "$CONTRACT" 'herdr pane close' 'team contract'
 check "$CONTRACT" 'close before collecting' 'team contract'
-check "$CONTRACT" 'herdr tab close' 'team contract'   # registered as a prohibition; its presence proves the ban is still there
+check "$CONTRACT" 'Only panes may be closed' 'team contract'   # the ban itself: 'herdr tab close' also appears in the §8 history, so it cannot serve as the criterion
 check "$SKILLS_DIR/dmt-dm/SKILL.md" 'herdr pane close' 'devm'
 check "$SKILLS_DIR/dmt-am/SKILL.md" 'herdr pane close' 'anam'
 
