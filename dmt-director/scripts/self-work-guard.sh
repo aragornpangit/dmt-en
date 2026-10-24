@@ -3,7 +3,13 @@
 # Usage: self-work-guard.sh <role> <file>
 set -eu
 ROLE="${1:?usage: self-work-guard.sh <role> <file>}"
-FILE="${2:?missing file}"
+FILE="${2:-}"
+# hook payload arrives on stdin (JSON); prefer it, the CLI argument is only a fallback
+payload=""; if [ ! -t 0 ]; then payload="$(timeout 1 cat 2>/dev/null || true)"; fi
+if [ -z "$FILE" ] && [ -n "$payload" ]; then
+  FILE="$(printf '%s' "$payload" | jq -r '.tool_input.file_path // .tool_input.path // .tool_input.notebook_path // empty' 2>/dev/null || true)"
+fi
+[ -n "$FILE" ] || exit 0
 DIR="$(cd "$(dirname "$0")" && pwd)"
 # 角色解析：参数 "-" 或空 ⇒ $DMT_ROLE ⇒ herdr pane label；只治理 director/pm/devm/anam
 resolve_role() {
