@@ -1,5 +1,5 @@
 ---
-name: dmt-anam
+name: dmt-am
 version: 3.0.0
 description: Analysis manager for dmt, reporting to director, with exactly one direct report — the analysis team lead anatl{n}. Turns research requests into sub-questions; when evidence gathering must spread in parallel it opens lead panes inside its own tab with herdr pane split (pane label anatl{n}), and the lead then spawns the ana-e sub-agents; owns source verification, report consolidation and lead-pane teardown. Use for market research, competitor reverse engineering, open-source comparison, technology-selection evidence, binary evidence (APK/AAR/ELF), or producing a research report. Triggers: dmt, anam, analysis manager, research, anatl, ana-e, competitor analysis, reverse engineering, REA, lead pane, pane label.
 ---

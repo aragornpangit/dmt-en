@@ -14,10 +14,10 @@ dmt/
 │   ├── team.md                           # team contract (this file, single authority)
 │   ├── README.md                         # repo notes and installation
 │   └── scripts/check-dmt-doc-paths.sh    # output-path checker
-├── dmt-devm/SKILL.md                        # Development manager
-├── dmt-anam/SKILL.md                        # Analysis manager
-├── dmt-devtl/SKILL.md                       # Development team lead (devtl{n})
-└── dmt-anatl/SKILL.md                       # Analysis team lead (anatl{n})
+├── dmt-dm/SKILL.md                        # Development manager
+├── dmt-am/SKILL.md                        # Analysis manager
+├── dmt-dtl/SKILL.md                       # Development team lead (devtl{n})
+└── dmt-atl/SKILL.md                       # Analysis team lead (anatl{n})
 ```
 
 ## 1. Team definition
@@ -46,12 +46,12 @@ director            Director (team lead + product manager, label director)
 | Role | Full name | Skill name | Runtime id (pane label) | Reports to | Direct reports | Responsibility |
 |---|---|---|---|---|---|---|
 | Director (team lead + product manager) | TeamLeader + ProductManager | `dmt-director` | `director` | Human | `devm`, `anam` | Single user entry point; take requirements, set acceptance criteria, write PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
-| Development manager | DevelopManager | `dmt-devm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director review |
-| Analysis manager | AnalystManager | `dmt-anam` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate the research report |
-| Development team lead | DevelopLeader | `dmt-devtl` | `devtl{n}` | `devm` | `dev-e` (sub-agent) | Spawned on demand by the manager; create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to devm |
-| Analysis team lead | AnalystLeader | `dmt-anatl` | `anatl{n}` | `anam` | `ana-e` (sub-agent) | Spawned on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify primary sources, report to anam |
+| Development manager | DevelopManager | `dmt-dm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director review |
+| Analysis manager | AnalystManager | `dmt-am` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate the research report |
+| Development team lead | DevelopLeader | `dmt-dtl` | `devtl{n}` | `devm` | `dev-e` (sub-agent) | Spawned on demand by the manager; create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to devm |
+| Analysis team lead | AnalystLeader | `dmt-atl` | `anatl{n}` | `anam` | `ana-e` (sub-agent) | Spawned on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify primary sources, report to anam |
 
-**Three naming layers (never mixed)**: (1) **skill name** `dmt-devm` — used by the skill registry, the install directory and the `/dmt-devm` command; (2) **runtime id** `devm` — used by pane labels, inbox folders, direction codes and instance numbers; (3) **display name** Development manager — used by prose, reports and logs. Example: the command is `/dmt-devtl`, the path is `inbox/devtl1/`, and the prose says "lead 1 reported …".
+**Three naming layers (never mixed)**: (1) **skill name** `dmt-dm` — used by the skill registry, the install directory and the `/dmt-dm` command; (2) **runtime id** `devm` — used by pane labels, inbox folders, direction codes and instance numbers; (3) **display name** Development manager — used by prose, reports and logs. Example: the command is `/dmt-dtl`, the path is `inbox/devtl1/`, and the prose says "lead 1 reported …".
 
 **Single-line command (hard rule; no role may skip a level or connect sideways):**
 
@@ -276,7 +276,7 @@ bash dmt-director/scripts/check-dmt-doc-paths.sh .
 4. **devm opens a lead pane and dispatches**: devm creates `devtl{n}` in its own tab and hands over the ticket (path, base sha, Files boundary, acceptance criteria, `timeoutMs`, report format); the team lead creates the worktree, dispatches `dev-e`, runs the implementation-level check and reports back. **One ticket, one writer.**
 5. **devm integrates**: check the diff and the check readings the lead reported → build and test → merge (resolve conflicts hunk by hunk by intent) → send failures back to the **same team lead** (which returns them to the same dev-e) → update each ticket's status; **once the batch is fully closed out with no next batch to dispatch, close that batch's `devtl{n}` (§1.2)**.
 6. **Hand over to director review**: devm submits the code to the director **department**; one ticket maps to one SPEC. Chain: the director verifies against the SPEC acceptance criteria in person → the director gives a verdict → **the director notifies devm** → only then does devm `git push`.
-7. **Parallelism**: for independent work, every role parallelizes **across its direct reports, as many as the work allows** (director across dmt-devm/anam; devm across multiple `devtl{n}`; anam across multiple `anatl{n}`; a team lead across multiple engineers). Priority: dynamic workflow > multiple parallel sub-agents. **Never serialize to save effort, and never dispatch across levels.**
+7. **Parallelism**: for independent work, every role parallelizes **across its direct reports, as many as the work allows** (director across dmt-dm/anam; devm across multiple `devtl{n}`; anam across multiple `anatl{n}`; a team lead across multiple engineers). Priority: dynamic workflow > multiple parallel sub-agents. **Never serialize to save effort, and never dispatch across levels.**
 
 ### 4.1 PRD template (director)
 

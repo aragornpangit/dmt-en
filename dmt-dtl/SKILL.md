@@ -1,5 +1,5 @@
 ---
-name: dmt-devtl
+name: dmt-dtl
 version: 3.0.0
 description: Development team lead (devtl{n}), reporting to devm, instances labelled devtl1, devtl2 … on their panes (the pane lives inside devm's tab), owning dev-e development engineers (sub-agents). Spawned on demand by devm; once it takes a ticket it creates the worktree and spawns its own engineer sub-agents. Use when devm has split the SPEC into tickets and handed one over, when a worktree must be created and dev-e dispatched, when the diff and gate readings must be collected, or when the implementation-level check must be reported to devm. Triggers: devtl, devtl1, devtl2, TL, development team lead, dispatch dev-e, worktree, collect diff, implementation check, report to devm.
 ---

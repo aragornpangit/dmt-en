@@ -1,5 +1,5 @@
 ---
-name: dmt-anatl
+name: dmt-atl
 version: 3.0.0
 description: Analysis team lead (anatl{n}), reporting to anam, instances labelled anatl1, anatl2 … on their panes (the pane lives inside anam's tab), owning ana-e analysis engineers (sub-agents). Spawned on demand by anam; once it takes a sub-question it splits the evidence work and spawns its own engineer sub-agents. Use when anam has split the research request into sub-questions and handed them over, when ana-e must gather evidence in parallel, or when primary sources must be verified and reported to anam. Triggers: anatl, anatl1, anatl2, TL, analysis team lead, dispatch ana-e, evidence, primary source, report to anam.
 ---
