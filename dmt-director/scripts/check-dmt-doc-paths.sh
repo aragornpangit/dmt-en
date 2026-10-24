@@ -197,6 +197,7 @@ echo
 echo "== 4l) Dispatch-first and the concurrency ledger must be registered =="
 check "$CONTRACT" 'dispatch first' 'team contract'
 check "$CONTRACT" 'concurrency ledger' 'team contract'
+check "$CONTRACT" 'Dispatch compliance' 'team contract'
 for role in dmt-pm dmt-dm dmt-am; do
   check "$SKILLS_DIR/$role/SKILL.md" 'dispatch first' "$role"
   check "$SKILLS_DIR/$role/SKILL.md" 'concurrency ledger' "$role"
