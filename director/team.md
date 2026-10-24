@@ -24,74 +24,90 @@ dmt/
 
 ### 1.1 Organization and members
 
-**Four levels**: `director` (director) → department manager (`dev-m` / `ana-m`) → team lead (`dev-tl{n}` / `ana-tl{n}`) → engineer (`dev-e` / `ana-e`). Five role skills, strictly four levels (**a self-run batch does not instantiate the team-lead level**, see below).
+**Four levels**: `director` (director) → department manager (`dev-m` / `ana-m`) → team lead (`dev-tl{n}` / `ana-tl{n}`) → engineer (`dev-e` / `ana-e`). Five role skills, strictly four levels.
 
-**The team-lead level is on demand.** A manager has two staffing paths: **self-run** (the manager spawns engineer sub-agents directly inside its own session, **as many as the work allows**) and **delegated** (create a team-lead tab; the team lead then spawns the engineer sub-agents). A self-run batch has no team lead and collapses to three levels — **that is a legitimate shape, not level skipping**.
+**The team-lead level is on demand.** When a manager needs to spread work in parallel it opens a team-lead pane inside **its own tab** (`herdr pane split`, pane label `dev-tl{n}`); the lead then spawns the engineer sub-agents. The lead pane is closed as soon as its batch is done.
 
 ```
 director            Director (team lead + product manager, label director)
 ├── dev-m               Development manager (label dev-m)
-│   ├── dev-tl1         Development team lead (label dev-tl1, on demand)
-│   │   ├── dev-e       Development engineer (sub-agent, no tab)
+│   ├── dev-tl1         Development team lead (pane label dev-tl1, inside dev-m's tab)
+│   │   ├── dev-e       Development engineer (sub-agent, no pane)
 │   │   └── dev-e ...
 │   ├── dev-tl2 ...
-│   ├── dev-tl{n}
-│   └── dev-e ...       self-run path: engineers spawned straight by the manager (no tab, no tab created)
+│   └── dev-tl{n}
 └── ana-m               Analysis manager (label ana-m)
-    ├── ana-tl1         Analysis team lead (label ana-tl1, on demand)
-    │   ├── ana-e       Analysis engineer (sub-agent, no tab)
+    ├── ana-tl1         Analysis team lead (pane label ana-tl1, inside ana-m's tab)
+    │   ├── ana-e       Analysis engineer (sub-agent, no pane)
     │   └── ana-e ...
-    ├── ana-tl{n}
-    └── ana-e ...       self-run path: engineers spawned straight by the manager (no tab, no tab created)
+    └── ana-tl{n}
 ```
 
-| Role | Full name | Skill / instance | tab label | Reports to | Direct reports | Responsibility |
+| Role | Full name | Skill / instance | pane label | Reports to | Direct reports | Responsibility |
 |---|---|---|---|---|---|---|
 | Director (team lead + product manager) | TeamLeader + ProductManager | `director` | `director` | Human | `dev-m`, `ana-m` | Single user entry point; take requirements, set acceptance criteria, write PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
-| Development manager | DevelopManager (devM) | `dev-m` | `dev-m` | `director` | **self-run**: `dev-e` (sub-agent) / **delegated**: `dev-tl{n}` | Split the SPEC into tickets; per batch choose self-run or delegated (self-run spawns dev-e to the max and produces the check readings itself); integrate and accept; push only after director review |
-| Analysis manager | AnalystManager (anaM) | `ana-m` | `ana-m` | `director` | **self-run**: `ana-e` (sub-agent) / **delegated**: `ana-tl{n}` | Take research requests; per batch choose self-run or delegated (self-run spawns ana-e to the max); verify sources, consolidate the research report |
-| Development team lead | DevelopLeader (devTl) | `dev-tl{n}` | `dev-tl{n}` | `dev-m` | `dev-e` (sub-agent) | Spawned on demand only when the manager delegates; create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to dev-m |
-| Analysis team lead | AnalystLeader (anaTl) | `ana-tl{n}` | `ana-tl{n}` | `ana-m` | `ana-e` (sub-agent) | Spawned on demand only when the manager delegates; split sub-questions, dispatch analysis engineers in parallel, verify primary sources, report to ana-m |
+| Development manager | DevelopManager (devM) | `dev-m` | `dev-m` | `director` | `dev-tl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director review |
+| Analysis manager | AnalystManager (anaM) | `ana-m` | `ana-m` | `director` | `ana-tl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate the research report |
+| Development team lead | DevelopLeader (devTl) | `dev-tl{n}` | `dev-tl{n}` | `dev-m` | `dev-e` (sub-agent) | Spawned on demand by the manager; create the worktree, dispatch development engineers, review the diff and run the implementation-level check, report to dev-m |
+| Analysis team lead | AnalystLeader (anaTl) | `ana-tl{n}` | `ana-tl{n}` | `ana-m` | `ana-e` (sub-agent) | Spawned on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify primary sources, report to ana-m |
 
 **Single-line command (hard rule; no role may skip a level or connect sideways):**
 
 1. `director` commands **only** `dev-m` and `ana-m`; **must not** task or receive from `dev-tl{n}` / `ana-tl{n}` / engineers directly.
-2. `dev-m`'s **cross-session** reports are **only** `dev-tl{n}`; `dev-e` may exist only as a **sub-agent inside dev-m's own session** (self-run) or as **a team lead's sub-agent** (delegated). **Never** treat an engineer as a tab-level peer and never talk to one across tabs.
-3. `ana-m`'s **cross-session** reports are **only** `ana-tl{n}`; `ana-e` may exist only as a **sub-agent inside ana-m's own session** (self-run) or as **a team lead's sub-agent** (delegated). **Never** treat an engineer as a tab-level peer and never talk to one across tabs.
+2. `dev-m` **only** commands `dev-tl{n}`; it **must not** task `dev-e` directly, nor receive reports from dev-e directly.
+3. `ana-m` **only** commands `ana-tl{n}`; it **must not** task `ana-e` directly, nor receive reports from ana-e directly.
 4. A team lead reports **only** to its own department manager. `dev-tl{n}` and `ana-tl{n}` never connect to each other, nor do dev-m and ana-m; cross-department matters go through `director`.
-5. Engineers `dev-e` / `ana-e` report **only** to **the level that spawned them** (manager or team lead); they carry **no standalone skill**, **no tab** and **no cross-tab communication** (discipline lives in the dispatch prompt).
+5. Engineers `dev-e` / `ana-e` report **only** to the team lead that spawned them; they carry **no standalone skill**, **no pane** and **no cross-pane communication** (discipline lives in the dispatch prompt).
 
-### 1.2 Runtime and tab lifecycle
+### 1.2 Runtime and pane lifecycle
 
-- Every role runs inside **Herdr**, each occupying one tab.
-- A tab holds exactly one pane (one agent): do not open multiple panes in one tab to host multiple roles, and do not reuse a pane id across tabs.
-- Peers are identified **by tab label** (`herdr tab list`), **never by remembered pane id**: pane ids drift across restarts and moves.
-- Startup order: prepare the `director` tab from the user session (or outside it); **the director creates the `dev-m` and `ana-m` tabs** and asks the user to start each harness inside its tab.
-- **Team leads are spawned on demand and closed on completion**: `dev-m` creates `dev-tl{n}` and `ana-m` creates `ana-tl{n}` at the point of need. `{n}` increases monotonically from 1; **a closed number is never reused**; closing rules are at the end of this section ("Closing a team-lead instance").
-- **A self-run manager creates no tab**: when a manager chooses **self-run**, every engineer sub-agent runs **inside the manager's own session** — **no tab is created, no `inbox/dev-tl{n}/` or `inbox/ana-tl{n}/` message appears, and there is nothing to close**. Self-run and delegated may be mixed within one batch; the criteria are in §4 steps 1 and 4.
+**Identity is the pane label — not a position, not a tab.** Every role occupies one **pane**, and the pane label equals the role or instance name (`director` / `dev-m` / `ana-m` / `dev-tl{n}` / `ana-tl{n}`), **unique within the workspace**.
+
+- **A tab is only a visual grouping**: `director` / `dev-m` / `ana-m` each occupy one tab, and the tab label matches the owner's pane label. **A team lead creates no tab**: its pane lives inside **its department manager's tab** (`dev-tl{n}` in `dev-m`'s tab, `ana-tl{n}` in `ana-m`'s tab).
+- **Peers are identified by pane label** (filter `label` from `herdr pane list`), **never by position inside a tab and never by remembered pane id**: pane ids drift across restarts, and pane order changes on `pane swap` / `pane move` (measured: after a swap the `pane list` order flips immediately). **Only the label is stable.**
+- **Engineers remain sub-agents**: `dev-e` / `ana-e` occupy no pane, carry no skill and do no cross-pane communication.
+- **Startup order**: the user prepares the `director` tab and starts its harness; **the director creates the `dev-m` and `ana-m` tabs and labels each root pane with the same name**, then asks the user to start the harness in each of those tabs.
+- **Team leads are spawned on demand and closed on completion**: the manager opens a lead pane **inside its own tab** with `pane split` and labels it. `{n}` increases monotonically from 1; **a closed number is never reused**; closing rules are at the end of this section.
+- **Capacity**: every extra lead pane halves the manager's own width (on a 118-column terminal, two panes give 59 columns each and three give about 39). **Keep at most two leads per tab** as a rule of thumb; beyond that, split the batch or temporarily `herdr pane zoom` one pane.
 
 ```bash
-# 1) list labels (match on label text, never copy a historical id)
-HERDR_ENV=1 herdr tab list --workspace "$HERDR_WORKSPACE_ID"
-# 2) resolve the tab_id from the label, then read that tab's current pane id
-HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID"
+# resolve by pane label (match on label text, never copy a historical pane id)
+HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
+  | jq -r --arg l "<role name>" '.result.panes[] | select(.label==$l) | .pane_id'
 ```
 
 If the target label is absent: **stop and ask the user**. Do not guess a pane id and do not retry against a session that does not exist.
+**Migration fallback** (only while labels are missing): if a tab with the same label exists and holds exactly one pane, use that pane; otherwise still stop and ask the user.
 
-Create a tab (director creates managers; managers create team leads):
+**Identity self-heal** (the first thing every role does after start): read `herdr pane get "$HERDR_PANE_ID"`; if the label does not match the role name (including empty), immediately run `herdr pane rename "$HERDR_PANE_ID" <role name>`. A team lead **must not** identify itself through `herdr tab list` — that tab label belongs to its manager.
+
+Create a pane:
 
 ```bash
-# <ROLE> is dev-m / ana-m; the director's own tab is created by the user, never by the director session
-HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label <ROLE>
+# (1) manager tab (created by the director): label the root pane with the same name right away
+tab_json=$(HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label dev-m)
+pane=$(echo "$tab_json" | jq -r '.result.root_pane.pane_id')
+HERDR_ENV=1 herdr pane rename "$pane" dev-m
 
-# team leads: dev-m creates dev-tl{n}, ana-m creates ana-tl{n} (n from 1 upward)
-HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label dev-tl1
+# (2) team-lead pane (created by the manager): append it to the right of the manager's own tab,
+#     no focus steal, no new tab
+pane=$(HERDR_ENV=1 herdr pane split "$HERDR_PANE_ID" --direction right --cwd "$PWD" --no-focus \
+  | jq -r '.result.pane.pane_id')
+HERDR_ENV=1 herdr pane rename "$pane" dev-tl1
 ```
 
-After creating a tab, the creator must bring it into role: if the harness does not start automatically, **ask the user to start it**; once started, deliver the first task (role name, skill name, manager's label, task file path) into that tab and verify delivery.
+**Bringing a lead pane into role** (started by the creator; never handed to the user):
 
-**Switch the permission mode before delivering the first task.** The order cannot be reversed:
+```bash
+HERDR_ENV=1 herdr pane send-text "$pane" 'codebuddy --permission-mode auto'
+HERDR_ENV=1 herdr pane send-keys "$pane" enter
+# wait for readiness: --source visible avoids matching stale scrollback
+HERDR_ENV=1 herdr pane wait-output "$pane" --source visible --match 'auto mode on' --timeout 60000
+```
+
+Once ready, the creator delivers the first task (role name, skill name, manager's label, task file path) and verifies with `pane read` that **the input box is empty** — that is what counts as delivered (`enter` is often swallowed; just send it again).
+
+**Switch the permission mode before delivering the first task (sessions started by the user only).** The order cannot be reversed:
 
 1. after the harness starts and **before the first message**, press `shift+Tab` to switch to `auto mode`;
 2. read the bottom of the pane once and **confirm `auto mode on` is visible**;
@@ -103,23 +119,27 @@ After creating a tab, the creator must bring it into role: if the harness does n
 
 **Cost of skipping it**: the team lead stalls on pop-ups such as `High risk operation detected - requires confirmation every time`, which often guard nothing more than `cmake` / `ctest`.
 
+> **A lead pane started by its creator skips this flow**: the launch command already carries `--permission-mode auto`, so there is no "locked once the conversation starts" window. **Do not** press `shift+Tab` there — pressing it cycles the mode away.
+
 #### Closing a team-lead instance (close on completion)
 
-Only team leads are **on-demand instances**; the `dev-m` / `ana-m` tabs are **permanent** and are never closed with a batch.
+Only team leads are **on-demand instances**; the `dev-m` / `ana-m` panes and tabs are **permanent** and are never closed with a batch.
 
-- **Owner**: **the creator itself** — `dev-m` closes `dev-tl{n}`, `ana-m` closes `ana-tl{n}`. Herdr's safety rule is "never close a tab you did not create", so the director and other roles **must not close on someone's behalf**.
+- **Owner**: **the creator itself** — `dev-m` closes `dev-tl{n}`, `ana-m` closes `ana-tl{n}`. Herdr's safety rule is "never close a pane or tab you did not create", so the director and other roles **must not close on someone's behalf**.
 - **Timing**: after **every task of that team lead's batch is closed out** and the creator **confirms there is no next batch to dispatch**. **Reusable within one batch** (several tickets or sub-questions of the same batch may go to the same lead; no need to create one per ticket), **never carried across batches** — the batch ends, the tab closes, and the next batch starts a new number.
 - **Three preconditions, fixed order, none optional**: (1) the lead's report (with per-criterion readings / primary sources) is folded into the ticket or report; (2) every worktree under that lead is removed with `git worktree remove` and no workspace is left behind; (3) `inbox/<creator>/` holds no unread message from that lead.
 - **Command and success criterion**:
 
 ```bash
-# 1) resolve the current tab_id from the label (never copy a historical id)
-HERDR_ENV=1 herdr tab list --workspace "$HERDR_WORKSPACE_ID"
-# 2) close; success criterion = the label is gone from tab list
-HERDR_ENV=1 herdr tab close <tab_id>
+# 1) resolve the current pane from the label (never copy a historical id)
+tl=$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" \
+  | jq -r '.result.panes[] | select(.label=="dev-tl1") | .pane_id')
+# 2) close; success criterion = the label is gone from pane list
+HERDR_ENV=1 herdr pane close "$tl"
 ```
 
-- **Risk clause**: closing a tab terminates that agent's session; **context cannot be recovered and the action cannot be undone** ⇒ **never close before collecting**; closing must happen after the report is filed and the worktree is reclaimed.
+- **`herdr tab close` is forbidden**: a lead pane shares its manager's tab, so closing the tab would kill the manager itself (and every other lead in the batch). Only panes may be closed.
+- **Risk clause**: closing a pane terminates that agent's session; **context cannot be recovered and the action cannot be undone** ⇒ **never close before collecting**; closing must happen after the report is filed and the worktree is reclaimed.
 - **Numbering**: a closed number is **never reused** (§2 rule 5); after closing, report to the user in one line (which instance, why).
 
 ### 1.3 Communication (inbox file + herdr doorbell)
@@ -137,7 +157,7 @@ HERDR_ENV=1 herdr tab close <tab_id>
 | `ana-m` | `ana-tl{n}` | `ana-m2ana-tl{n}` |
 | `ana-tl{n}` | `ana-m` | `ana-tl{n}2ana-m` |
 
-**Step 1 — locate the peer** (re-resolve every time; never reuse a pane id): `herdr tab list` gives the `tab_id` for the label → `herdr pane list` gives the **current** pane id for that `tab_id`. Label missing ⇒ **stop and ask the user**; do not guess a pane id.
+**Step 1 — locate the peer** (re-resolve every time; never reuse a pane id): `herdr pane list` gives the **current** pane id for a **pane label** (the label equals the role name and is unique in the workspace). Label missing ⇒ **stop and ask the user**; do not guess a pane id and do not fall back to a position inside a tab.
 
 **Step 2 — write the inbox file**
 
@@ -204,7 +224,7 @@ Rules:
 2. **Version semantics**: small in-version updates **edit the same file in place**; substantive revisions **start a new versioned file** (new timestamp, `v{N+1}`) and the old file is marked at the top with "superseded by v N+1".
 3. The PRD uses the date only (`YYMMDD`) as required by the requesting side, with no time; every other output carries time.
 4. **Independent numbering**: `{prd-seq}` / `{research-seq}` / `{human-arch-seq}` / `{human-plan-seq}` / `{spec-seq}` are independent and accumulate within their category; only SPEC and ticket share one `spec-seq`.
-5. **Team lead numbering**: `{n}` in `dev-tl{n}` / `ana-tl{n}` matches the tab label and the inbox folder (`inbox/dev-tl{n}`, `inbox/ana-tl{n}`) in all three places, increases from 1, and is never reused after close.
+5. **Team lead numbering**: `{n}` in `dev-tl{n}` / `ana-tl{n}` matches the **pane label** and the inbox folder (`inbox/dev-tl{n}`, `inbox/ana-tl{n}`) in all three places, increases from 1, and is never reused after close.
 6. Historical typos stay as history: the `ver{seq}` and `YYMMDD-v{seq}` forms in old requests are **void**; this table is authoritative, and existing files are not renamed.
 
 ## 3. Directory ownership
@@ -248,27 +268,13 @@ bash director/scripts/check-dmt-doc-paths.sh .
 
 ## 4. Workflow
 
-1. **ana-m researches**: ana-m first picks a staffing mode per §4.0 — **self-run** spawns `ana-e` sub-agents directly, **delegated** spawns `ana-tl{n}` and the lead dispatches `ana-e`; ana-m verifies and consolidates the research report, which lands in `docs/analyst/` **after director review**; **if the batch was delegated and is fully closed out with no next batch to dispatch, ana-m closes that batch's `ana-tl{n}` (§1.2)**.
+1. **ana-m researches**: ana-m opens `ana-tl{n}` lead panes on demand and the lead dispatches `ana-e`; ana-m verifies and consolidates the research report, which lands in `docs/analyst/` **after director review**; **once the batch is fully closed out with no next batch to dispatch, ana-m closes that batch's `ana-tl{n}` (§1.2)**.
 2. **director writes PRD and SPEC**: based on the research report and user conversations, the director produces the PRD and SPEC (with acceptance criteria), landing in `docs/pd/prd/` and `docs/pd/spec/` **after dev-m review**.
 3. **dev-m splits tickets**: dev-m uses `/to-tickets` to cut the SPEC into matching development tickets under `docs/dev/tickets/`; dev-m consolidates, reviews and integrates the department's results.
-4. **dev-m picks a staffing mode and dispatches**: decide per §4.0 — **self-run** creates the worktrees itself and spawns `dev-e` sub-agents to the max (seven-item dispatch and the dev-e hard rules are those of the `dev-tl` skill), and dev-m produces the check readings itself; **delegated** creates `dev-tl{n}` and hands over the ticket (path, base sha, Files boundary, acceptance criteria, `timeoutMs`, report format), and the team lead creates the worktree, dispatches `dev-e`, runs the implementation-level check and reports back. When mixing, state per ticket who owns it: **one ticket, one writer**.
-5. **dev-m integrates**: check the diff and the check readings (self-run tickets = readings dev-m produced; delegated tickets = readings the lead reported) → build and test → merge (resolve conflicts hunk by hunk by intent) → send failures back to the **same team lead / the same dev-e** → update each ticket's status; **if the batch was delegated and is fully closed out with no next batch to dispatch, close that batch's `dev-tl{n}` (§1.2)**.
+4. **dev-m opens a lead pane and dispatches**: dev-m creates `dev-tl{n}` in its own tab and hands over the ticket (path, base sha, Files boundary, acceptance criteria, `timeoutMs`, report format); the team lead creates the worktree, dispatches `dev-e`, runs the implementation-level check and reports back. **One ticket, one writer.**
+5. **dev-m integrates**: check the diff and the check readings the lead reported → build and test → merge (resolve conflicts hunk by hunk by intent) → send failures back to the **same team lead** (which returns them to the same dev-e) → update each ticket's status; **once the batch is fully closed out with no next batch to dispatch, close that batch's `dev-tl{n}` (§1.2)**.
 6. **Hand over to director review**: dev-m submits the code to the director **department**; one ticket maps to one SPEC. Chain: the director verifies against the SPEC acceptance criteria in person → the director gives a verdict → **the director notifies dev-m** → only then does dev-m `git push`.
-7. **Parallelism**: for independent work, every role parallelizes **across the units that actually do the work, as many as the work allows** (director across dev-m/ana-m; dev-m across multiple `dev-tl{n}` or multiple `dev-e`, both at once when mixing; ana-m across multiple `ana-tl{n}` or multiple `ana-e`; a team lead across multiple engineers). Priority: dynamic workflow > multiple parallel sub-agents. **Never serialize to save effort, and never dispatch across levels.**
-
-### 4.0 Staffing mode (manager level, decided once per batch)
-
-The manager (`dev-m` / `ana-m`) decides the batch's path and records the decision in the batch note (the ticket or the report's method section):
-
-| Mode | Who does the work | Criteria |
-|---|---|---|
-| **Self-run** | the manager **spawns engineer sub-agents inside its own session**, as many as the work allows | **≤2 units** in the batch with the context already at hand, not worth creating a lead |
-| **Delegated** | `herdr tab create` builds a team-lead tab, and **the lead then spawns the engineer sub-agents** | **≥3 units**, or needs wide parallelism, or needs an independent check / source verification, or needs context isolation |
-| **Mixed** | low-coupling units self-run, heavy units delegated | state the owner per unit |
-
-- **Both modes are equally legitimate**; "a lead must exist to be proper" is not a rule. Whether a lead is created is the manager's call, and the director does not interfere.
-- Either way: **engineers are always sub-agents** (no tab, no skill, no cross-tab communication); **the check and the verification cannot be skipped** — delegated does it in the lead, **self-run does it in the manager itself** (you check the people you spawned; spawning them yourself is not an exemption); **one unit, one writer**.
-- **Only a delegated batch has a close step**: a self-run batch ends with no `herdr tab close`.
+7. **Parallelism**: for independent work, every role parallelizes **across its direct reports, as many as the work allows** (director across dev-m/ana-m; dev-m across multiple `dev-tl{n}`; ana-m across multiple `ana-tl{n}`; a team lead across multiple engineers). Priority: dynamic workflow > multiple parallel sub-agents. **Never serialize to save effort, and never dispatch across levels.**
 
 ### 4.1 PRD template (director)
 
@@ -294,11 +300,11 @@ The SPEC must be self-contained: every User Story converts into a ticket and int
 
 1. Do a **dependency analysis** before dispatching: only independent tasks run in parallel; tasks sharing files, sharing a build target or needing ordered acceptance must be serial.
 2. **Testable criterion at team-lead level**: independent units (tickets / evidence units) **≥2 ⇒ dispatch concurrently**; the only exception is **stating the serial reason in the report** (reason limited to: dependency / shared files / shared build target / ordered acceptance). Priority: dynamic workflow `runs.all` > multiple parallel sub-agents.
-   - **The same criterion applies at manager level** (§4.0): self-run parallelizes **multiple engineer sub-agents inside the manager's own session**, delegated parallelizes **multiple lead tabs**; **≥2 independent units must likewise run concurrently, as many as the work allows** — "the manager is one person" is not a reason to serialize.
+   - **The same criterion applies at manager level**: **≥2 independent tickets or sub-questions must likewise run concurrently**, spread over multiple lead panes — "the manager is one person" is not a reason to serialize.
 3. Every dispatch prompt states: inputs (artifact paths), boundary, expected output, reporting requirements, `timeoutMs` (no shorter than 45 min for long chains).
 4. Sub-agents are always dispatched in the background/async: **end the turn immediately after dispatching** and resume on the completion notification; never poll.
 5. Each development engineer gets **one git worktree** and edits and commits only there; the main worktree is read-only.
-6. Sub-agent results are written into authoritative documents or used downstream only after **the level that spawned them** verifies the evidence: a delegated manager never accepts an engineer's raw report (it goes through the lead), and **a self-run manager is the spawning level and must verify every reading and command output itself** (self-run is not a waiver).
+6. Sub-agent results are written into authoritative documents or used downstream only after **the team lead that spawned them** verifies the evidence; a manager never accepts an engineer's raw report — it goes through the lead.
 
 ### 5.3 Review gates
 
@@ -306,8 +312,8 @@ The SPEC must be self-contained: every User Story converts into a ticket and int
 |---|---|---|---|
 | Research report | ana-m | director | The director accepts the conclusions and sources; lands in `docs/analyst/` |
 | PRD and SPEC | director | dev-m | dev-m accepts feasibility and slicing granularity; lands in `docs/pd/prd/` and `docs/pd/spec/` |
-| Implementation check | dev-tl (delegated) / dev-m itself (self-run) | dev-m | Every ticket criterion has a reading, red gates are classified, Files boundary respected |
-| Team-lead instance close | dev-m / ana-m (creator) | creator self-check | Report filed, worktree removed with `git worktree remove`, no unread message in the inbox; after closing, `herdr tab list` no longer shows the label |
+| Implementation check | dev-tl | dev-m | Every ticket criterion has a reading, red gates are classified, Files boundary respected |
+| Team-lead instance close | dev-m / ana-m (creator) | creator self-check | Report filed, worktree removed with `git worktree remove`, no unread message in the inbox; after closing, `herdr pane list` no longer shows the label |
 | Human architecture / human plan | director | User | Structure matches the real code, no future state mixed in; lands in `docs/human/human-arch/` and `docs/human/human-plan/` |
 | Ticket code | dev-m | director | Every SPEC acceptance criterion passes; push only after the director notifies dev-m |
 | Cross-department disagreement | dev-m / ana-m | director | The director arbitrates and replies with a ruling |
@@ -322,10 +328,11 @@ The reader is **someone who knows a little software engineering but did not work
 bash director/scripts/check-dmt-doc-paths.sh
 ```
 
-Seven checks: the six output directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/analyst`, `docs/human/human-arch`, `docs/human/human-plan`) plus the root `inbox/`; the five skills (`director` / `dev-m` / `ana-m` / `dev-tl` / `ana-tl`) each point at their own directory; **the team-lead close action is registered** (this contract and the `dev-m` / `ana-m` skills contain `herdr tab close`, and this contract contains "never close before collecting"); **the team-lead parallelism criterion is registered** (`dev-tl` / `ana-tl` contain "must run in parallel", and this contract contains "≥2 ⇒ dispatch concurrently"); **the manager staffing mode is registered** (`dev-m` / `ana-m` contain "self-run", and this contract carries §4.0 "staffing mode"); this contract registers every path; a negative sample is rejected (**only the §3 table is inspected**; historical notes in §8 do not count as registration). **Rerun after any change to paths, tab lifecycle, parallelism criteria or staffing modes.**
+Six checks: the six output directories exist (`docs/pd/prd`, `docs/pd/spec`, `docs/dev/tickets`, `docs/analyst`, `docs/human/human-arch`, `docs/human/human-plan`) plus the root `inbox/`; the five skills (`director` / `dev-m` / `ana-m` / `dev-tl` / `ana-tl`) each point at their own directory; **the team-lead close action is registered** (this contract and the `dev-m` / `ana-m` skills contain `herdr pane close`, and this contract contains "never close before collecting" and the ban on `herdr tab close`); **identity resolution is registered** (this contract and all five skills contain `pane label`, and this contract forbids resolving by position inside a tab); **the team-lead parallelism criterion is registered** (`dev-tl` / `ana-tl` contain "must run in parallel", and this contract contains "≥2 ⇒ dispatch concurrently"); this contract registers every path; a negative sample is rejected (**only the §3 table is inspected**; historical notes in §8 do not count as registration). **Rerun after any change to paths, pane lifecycle or parallelism criteria.**
 
 ## 8. Change log
 
+- **2026-10-24 (user ruling, tenth: identity moves to pane label + team-lead panes inside the manager tab)**: (1) **The 2026-10-23 ninth ruling ("self-run / delegated") is rolled back** — the manager level keeps a single path (open lead panes inside its own tab, the lead then spawns the engineer sub-agents); engineers are always the lead's sub-agents and a manager never tasks dev-e directly. §4.0 is deleted, and §1.1 rules 2/3/5, §4, §5.2, §5.3 and checker item 4b are rolled back with it. (2) **Identity moves from "tab label + first pane in the tab" to "pane label"**: the pane label equals the role or instance name and is unique in the workspace; **position inside a tab is no longer used** (measured: `pane swap` flips the `pane list` order immediately, so "the first pane" silently addresses the wrong agent). (3) **Team-lead panes open inside the manager's own tab**: `herdr pane split "$HERDR_PANE_ID" --direction right --no-focus` plus `pane rename`; no tab is created and the tab degrades to a visual grouping. (4) **The creator starts the lead pane**: `pane send-text 'codebuddy --permission-mode auto'` + `pane send-keys enter`, readiness via `wait-output --source visible --match 'auto mode on'`; therefore leads **skip** the `shift+Tab` permission-mode flow, which now applies only to sessions the user starts by hand. (5) **Closing uses `herdr pane close`**, and **`herdr tab close` is forbidden** — a lead shares its manager's tab, so closing the tab would kill the manager and every other lead in the batch. (6) **Identity self-heal**: every role checks the label of `$HERDR_PANE_ID` after start and renames it when it does not match; a lead must not identify itself through `tab list`. (7) Capacity note: keep at most two lead panes per tab, otherwise split the batch or use `pane zoom`. Synced changes: the `dev-m` / `ana-m` / `dev-tl` / `ana-tl` skills, `README.md` and the checker.
 - **2026-10-23 (user ruling, ninth: two staffing paths at manager level)**: managers (`dev-m` / `ana-m`) no longer have "create a lead" as their only option. (1) **§4.0 staffing mode** added: **self-run** (the manager spawns engineer sub-agents inside its own session, as many as the work allows) and **delegated** (`herdr tab create` a lead, which then spawns the engineers) are **equally legitimate** and may be mixed within a batch; criteria: ≤2 units with context at hand ⇒ self-run, ≥3 units or wide parallelism / independent check ⇒ delegated. (2) **Single-line command rewritten** (§1.1 rules 2 and 3): a manager's **cross-session** reports are still only team leads; engineers exist only as **sub-agents inside the manager's own session** (self-run) or as a lead's sub-agents (delegated), and **treating an engineer as a tab-level peer or talking across tabs stays forbidden**. (3) Engineers report to "the level that spawned them" (rule 5) — under self-run that is the manager. (4) **The parallelism criterion drops to manager level** (§5.2): self-run parallelizes multiple engineer sub-agents, and ≥2 independent units must likewise run concurrently, as many as the work allows. (5) **A self-run batch has no tab, no inbox message and no `herdr tab close`** (§1.2, §4.0); the check is never skipped by handing it to yourself (§5.3 row now reads "dev-tl (delegated) / dev-m itself (self-run)"). (6) Role names unified: development manager (devM), development team lead (devTl), analysis manager (anaM), analysis team lead (anaTl); skill ids unchanged. (7) The checker gains a seventh assertion: `dev-m` / `ana-m` contain "self-run" and this contract carries §4.0 "staffing mode".
 - **2026-10-22 (user ruling, eighth: unified parallelism criterion at team-lead level)**: `dev-tl` previously said tickets "may" run in parallel while `ana-tl` said "must", so the two levels disagreed and the level with the real resource limits said nothing. (1) Both skills' step 3 now use one wording: **independent units must run in parallel, as many as the work allows** (concurrent dispatch in the same reply, dynamic workflow `runs.all` first, then multiple sub-agents; end the turn immediately, never poll); **only** dependency / shared files / shared build target / ordered acceptance justify serial work, **and the reason must be stated in the report**; concurrency is bounded by resources (development lead: **no concurrent builds inside one worktree**; analysis lead: no concurrency on the same input file / device / REA session). (2) §5.2 gains the **testable criterion**: independent units ≥2 ⇒ dispatch concurrently, exception only with a stated serial reason. (3) The checker gains static assertions.
 - **2026-10-22 (user ruling, seventh: team-lead tab lifecycle completed — "close on completion")**: previously only the "spawn on demand" half existed. (1) **Owner** = the creator (`dev-m` closes `dev-tl{n}`, `ana-m` closes `ana-tl{n}`); nobody else may close on its behalf (matching herdr's "never close a tab you did not create"). (2) **Timing** = the batch is fully closed out and the creator confirms no next batch, **reusable within a batch, never carried across batches**. (3) **Three preconditions** (report filed, worktree removed, no unread inbox message) **in fixed order, none optional**. (4) **Command** `herdr tab close <tab_id>` with the id resolved from the label at that moment, **success criterion** = the label disappears from `tab list`. (5) **Never close before collecting** — closing kills the agent session, the context cannot be recovered and the action cannot be undone. (6) The `dev-m` / `ana-m` tabs stay **permanent** and are outside this ruling. (7) The checker gains assertions for the close action.
