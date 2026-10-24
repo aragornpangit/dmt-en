@@ -40,7 +40,7 @@ Team conventions and gates see `dmt-director/team.md` (this repo; after installi
 ## Communication
 
 - **Own identity**: pane label = `devtl{n}` (`$HERDR_PANE_ID`), **not** the tab label.
-- **devm → self**: pane message (resolve the pane by label `devtl{n}`, do not record pane ids).
+- **devm → self**: prose lands in `inbox/devtl{n}/` plus a doorbell (resolve the pane by label `devtl{n}`, do not record pane ids). **Claim before reading**: `bash dmt-director/scripts/msg-take.sh devtl{n} <file>` moves it into `.doing/`; **when done**, `msg-done.sh devtl{n} <file>` deletes it.
 - **Self → devm**: body to `inbox/devm/{seq}-devtl{n}2devm-{slug}-{YYMMDDHHMM}.md` (`inbox/` is at the repo root and already gitignored) + ring the doorbell on `devm`'s pane: `herdr agent prompt <pane> '<short sentence>'` (carries its own Enter; returning `agent_prompted` means delivered; also applies to the codebuddy panel, verified 2026-10-24); only on failure fall back to `herdr pane send-text` + `send-keys enter` and `pane read` to verify the input box is cleared.
 - **Use the script**: `bash dmt-director/scripts/send-msg.sh devm devtl{n} <slug> <body file>` (computes seq/timestamp/direction automatically; on doorbell failure falls back to `send-text` + `send-keys`).
 - **Delivery quoting discipline**: wrap the whole segment in single quotes, **no backticks and no `$()`** (the shell eats them).
