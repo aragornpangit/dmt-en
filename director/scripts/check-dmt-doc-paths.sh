@@ -58,31 +58,31 @@ check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/prd/'
 check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/spec/'
 check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-arch/'
 check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-plan/'
-check "$SKILLS_DIR/dev-m/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/ana-m/SKILL.md" 'docs/analyst/'
-check "$SKILLS_DIR/dev-tl/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/ana-tl/SKILL.md" 'docs/analyst/'
+check "$SKILLS_DIR/devm/SKILL.md" 'docs/dev/tickets/'
+check "$SKILLS_DIR/anam/SKILL.md" 'docs/analyst/'
+check "$SKILLS_DIR/devtl/SKILL.md" 'docs/dev/tickets/'
+check "$SKILLS_DIR/anatl/SKILL.md" 'docs/analyst/'
 
 echo
 echo "== 3) the team-lead close action must be registered (close on completion; creator only; panes, never tabs) =="
 check "$CONTRACT" 'herdr pane close' 'team contract'
 check "$CONTRACT" 'close before collecting' 'team contract'
 check "$CONTRACT" 'herdr tab close' 'team contract'   # registered as a prohibition; its presence proves the ban is still there
-check "$SKILLS_DIR/dev-m/SKILL.md" 'herdr pane close' 'dev-m'
-check "$SKILLS_DIR/ana-m/SKILL.md" 'herdr pane close' 'ana-m'
+check "$SKILLS_DIR/devm/SKILL.md" 'herdr pane close' 'devm'
+check "$SKILLS_DIR/anam/SKILL.md" 'herdr pane close' 'anam'
 
 echo
 echo "== 3b) identity must resolve by pane label (never by position inside a tab) =="
 check "$CONTRACT" 'pane label' 'team contract'
 check "$CONTRACT" 'position inside a tab' 'team contract'
-for role in director dev-m ana-m dev-tl ana-tl; do
+for role in director devm anam devtl anatl; do
   check "$SKILLS_DIR/$role/SKILL.md" 'pane label' "$role"
 done
 
 echo
 echo "== 4) the team-lead parallelism criterion must be registered (independent >=2 => concurrent) =="
-check "$SKILLS_DIR/dev-tl/SKILL.md" 'must run in parallel' 'dev-tl'
-check "$SKILLS_DIR/ana-tl/SKILL.md" 'must run in parallel' 'ana-tl'
+check "$SKILLS_DIR/devtl/SKILL.md" 'must run in parallel' 'devtl'
+check "$SKILLS_DIR/anatl/SKILL.md" 'must run in parallel' 'anatl'
 check "$CONTRACT" '≥2 ⇒ dispatch concurrently' 'team contract'
 
 echo
