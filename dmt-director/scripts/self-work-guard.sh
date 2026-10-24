@@ -5,6 +5,20 @@ set -eu
 ROLE="${1:?usage: self-work-guard.sh <role> <file>}"
 FILE="${2:?missing file}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
+# 角色解析：参数 "-" 或空 ⇒ $DMT_ROLE ⇒ herdr pane label；只治理 director/pm/devm/anam
+resolve_role() {
+  r="$1"
+  if [ -z "$r" ] || [ "$r" = "-" ]; then r="${DMT_ROLE:-}"; fi
+  if [ -z "$r" ] && [ -n "${HERDR_PANE_ID:-}" ]; then
+    r="$(HERDR_ENV=1 herdr pane list --workspace "${HERDR_WORKSPACE_ID:-}" 2>/dev/null \
+        | jq -r --arg p "$HERDR_PANE_ID" '.result.panes[] | select(.pane_id==$p) | .label' | head -1 || true)"
+  fi
+  printf '%s' "$r"
+}
+ROLE="$(resolve_role "$ROLE")"
+if [ "${DMT_DISPATCH_ALL:-0}" != 1 ]; then
+  case "$ROLE" in director|pm|devm|anam) ;; *) exit 0 ;; esac
+fi
 case "$FILE" in
   */docs/pd/*|*/docs/dev/tickets/*|*/docs/analyst/*|*/docs/human/*) ;;
   *) exit 0 ;;

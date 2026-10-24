@@ -12,6 +12,20 @@ set -eu
 CMD="${1:?usage: dispatch-ledger.sh <plan|inc|excuse|done|check|report|status> <role> ...}"
 ROLE="${2:?missing role}"
 shift 2 || true
+# 角色解析：参数 "-" 或空 ⇒ $DMT_ROLE ⇒ herdr pane label；只治理 director/pm/devm/anam
+resolve_role() {
+  r="$1"
+  if [ -z "$r" ] || [ "$r" = "-" ]; then r="${DMT_ROLE:-}"; fi
+  if [ -z "$r" ] && [ -n "${HERDR_PANE_ID:-}" ]; then
+    r="$(HERDR_ENV=1 herdr pane list --workspace "${HERDR_WORKSPACE_ID:-}" 2>/dev/null \
+        | jq -r --arg p "$HERDR_PANE_ID" '.result.panes[] | select(.pane_id==$p) | .label' | head -1 || true)"
+  fi
+  printf '%s' "$r"
+}
+ROLE="$(resolve_role "$ROLE")"
+if [ "${DMT_DISPATCH_ALL:-0}" != 1 ]; then
+  case "$ROLE" in director|pm|devm|anam) ;; *) exit 0 ;; esac
+fi
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 LEDGER="$ROOT/locks/dispatch-$ROLE.tsv"
 mkdir -p "$ROOT/locks"
@@ -48,6 +62,8 @@ case "$CMD" in
     echo "done $u"
     ;;
   check)
+    # 超过 24h 的旧账不再阻断（避免历史批次卡住新会话）
+    if [ -n "$(find "$LEDGER" -mmin +1440 2>/dev/null)" ]; then exit 0; fi
     [ -f "$LEDGER" ] || exit 0
     left="$(awk -F'\t' '$2=="planned"{printf "%s ", $1}' "$LEDGER")"
     [ -n "$left" ] || exit 0
@@ -61,7 +77,8 @@ case "$CMD" in
     n="$(awk -F'\t' 'END{print NR}' "$LEDGER" 2>/dev/null || echo 0)"
     units="$(awk -F'\t' '{printf "%s ", $1}' "$LEDGER" 2>/dev/null)"
     m="$(awk -F'\t' '$2=="dispatched"||$2=="done"{c++} END{print c+0}' "$LEDGER" 2>/dev/null)"
-    k="$(awk -F'\t' '$2=="excused"{c++} END{print c+0}' "$LEDGER" 2>/dev/null)"
+    k=$(( n - m ))
+    if [ "$k" -lt 0 ]; then k=0; fi
     codes="$(awk -F'\t' '$2=="excused"{printf "%s:%s ", $1, $3}' "$LEDGER" 2>/dev/null)"
     echo "concurrency: units $n ($units) -> dispatched $m + not dispatched $k (${codes:-none})"
     ;;
