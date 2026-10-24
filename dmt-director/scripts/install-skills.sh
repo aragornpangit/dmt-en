@@ -16,6 +16,9 @@ for s in $SKILLS; do
     rm -rf "$TARGET/.agents/skills/$s"
     cp -r "$REPO/$s" "$TARGET/.agents/skills/$s"
   else
+    # When the target already exists as a real directory (skills copied by an older version) it must be removed first,
+    # otherwise ln -sfn creates the symlink inside that directory
+    rm -rf "$TARGET/.agents/skills/$s"
     ln -sfn "$REPO/$s" "$TARGET/.agents/skills/$s"
   fi
 done
