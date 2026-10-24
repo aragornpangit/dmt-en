@@ -3,13 +3,13 @@
 Role skills for the dmt team: **the single maintenance point for the team definition and its five role skills**. Four levels: `director` → department manager (`devm` / `anam`) → team lead (`devtl{n}` / `anatl{n}`) → engineer (`dev-e` / `ana-e`).
 **The team-lead level is on demand**: when a manager needs to spread work in parallel it opens a lead pane inside **its own tab** with `herdr pane split` (pane label `devtl{n}`), and the lead then spawns the engineer sub-agents. The lead pane is closed once its batch is done.
 
-| Role | Skill | pane label | Reports to | Direct reports | Responsibility in one line |
+| Role | Skill name | Runtime id (pane label) | Reports to | Direct reports | Responsibility in one line |
 |---|---|---|---|---|---|
-| Director (team lead + product manager) | `director` | `director` | Human | `devm`, `anam` | Take requirements, set acceptance criteria, write the PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
-| Development manager | `devm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director approval |
-| Analysis manager | `anam` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate research reports |
-| Development team lead | `devtl` (instance `devtl{n}`) | `devtl1`, `devtl2` … | `devm` | `dev-e` (sub-agent) | Created on demand by the manager; create the worktree, dispatch development engineers, check the diff, report to devm |
-| Analysis team lead | `anatl` (instance `anatl{n}`) | `anatl1`, `anatl2` … | `anam` | `ana-e` (sub-agent) | Created on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify sources, report to anam |
+| Director (team lead + product manager) | `dmt-director` | `director` | Human | `devm`, `anam` | Take requirements, set acceptance criteria, write the PRD and SPEC personally, review research reports and ticket code, arbitrate across departments |
+| Development manager | `dmt-devm` | `devm` | `director` | `devtl{n}` (pane, on demand) | Split the SPEC into tickets; open lead panes on demand; integrate and accept; push only after director approval |
+| Analysis manager | `dmt-anam` | `anam` | `director` | `anatl{n}` (pane, on demand) | Take research requests; open lead panes on demand; verify sources, consolidate research reports |
+| Development team lead | `dmt-devtl` | `devtl1`, `devtl2` … | `devm` | `dev-e` (sub-agent) | Created on demand by the manager; create the worktree, dispatch development engineers, check the diff, report to devm |
+| Analysis team lead | `dmt-anatl` | `anatl1`, `anatl2` … | `anam` | `ana-e` (sub-agent) | Created on demand by the manager; split sub-questions, dispatch analysis engineers in parallel, verify sources, report to anam |
 
 **Display names**: prose, reports and logs use Director / Development manager / Analysis manager / Development team lead / Analysis team lead (with the instance number, e.g. "lead 1"); **pane labels, inbox folders, direction codes and commands use the ids** (`director` / `devm` / `anam` / `devtl{n}` / `anatl{n}` / `dev-e` / `ana-e`). Never mix the two: `inbox/devtl1/` is a path, "lead 1 reported …" is prose.
 
@@ -25,51 +25,51 @@ Workflow in one line: anam opens a lead pane and researches (director reviews) �
 ```
 dmt/                                    # one folder per role
 ├── README.md                                 # project overview (this file)
-├── director/                           # Director, also product manager (skill director)
+├── dmt-director/                           # Director, also product manager (skill director)
 │   ├── SKILL.md
 │   ├── team.md                         # team contract (single authority)
 │   ├── README.md                       # pointer to root README.md
 │   └── scripts/check-dmt-doc-paths.sh  # output-path checker
-├── devm/SKILL.md                      # Development manager
-├── anam/SKILL.md                      # Analysis manager
-├── devtl/SKILL.md                     # Development team lead (devtl{n})
-└── anatl/SKILL.md                     # Analysis team lead (anatl{n})
+├── dmt-devm/SKILL.md                      # Development manager
+├── dmt-anam/SKILL.md                      # Analysis manager
+├── dmt-devtl/SKILL.md                     # Development team lead (devtl{n})
+└── dmt-anatl/SKILL.md                     # Analysis team lead (anatl{n})
 ```
 
 ## Installing into a project
 
-The folder name in this repo is the skill name (`director` / `devm` / `anam` / `devtl` / `anatl`); **copy them under the same names** into the skill directory.
+The folder name in this repo is the skill name (`dmt-director` / `dmt-devm` / `dmt-anam` / `dmt-devtl` / `dmt-anatl`); **copy them under the same names** into the skill directory. The runtime ids (`devm` and friends) only label panes and inbox folders and do not change with the skill name.
 
 ```bash
-mkdir -p <project>/.agents/skills/{director,devm,anam,devtl,anatl} <project>/scripts \
+mkdir -p <project>/.agents/skills/{dmt-director,dmt-devm,dmt-anam,dmt-devtl,dmt-anatl} <project>/scripts \
          <project>/docs/{pd/{prd,spec},dev/tickets,analyst,human/{human-arch,human-plan}} \
          <project>/inbox/{director,devm,anam}
-cp director/SKILL.md  <project>/.agents/skills/director/
-cp devm/SKILL.md     <project>/.agents/skills/devm/
-cp anam/SKILL.md     <project>/.agents/skills/anam/
-cp devtl/SKILL.md    <project>/.agents/skills/devtl/
-cp anatl/SKILL.md    <project>/.agents/skills/anatl/
-cp director/team.md <project>/docs/team.md
-cp director/scripts/check-dmt-doc-paths.sh <project>/scripts/
+cp dmt-director/SKILL.md  <project>/.agents/skills/dmt-director/
+cp dmt-devm/SKILL.md     <project>/.agents/skills/dmt-devm/
+cp dmt-anam/SKILL.md     <project>/.agents/skills/dmt-anam/
+cp dmt-devtl/SKILL.md    <project>/.agents/skills/dmt-devtl/
+cp dmt-anatl/SKILL.md    <project>/.agents/skills/dmt-anatl/
+cp dmt-director/team.md <project>/docs/team.md
+cp dmt-director/scripts/check-dmt-doc-paths.sh <project>/scripts/
 printf 'inbox/*/\n' >> <project>/.gitignore        # the inbox is a runtime channel, not versioned
 ```
 
 To follow updates from this repo, use **relative symlinks** instead (recommended; assuming the project sits next to this repo):
 
 ```bash
-ln -s ../../../dmt/director <project>/.agents/skills/director
-ln -s ../../../dmt/devm <project>/.agents/skills/devm     # anam / devtl / anatl likewise
-ln -s ../../dmt/director/team.md <project>/docs/team.md
-ln -s ../../dmt/director/scripts/check-dmt-doc-paths.sh <project>/scripts/check-dmt-doc-paths.sh
+ln -s ../../../dmt/dmt-director <project>/.agents/skills/dmt-director
+ln -s ../../../dmt/dmt-devm     <project>/.agents/skills/dmt-devm   # dmt-anam / dmt-devtl / dmt-anatl likewise
+ln -s ../../dmt/dmt-director/team.md <project>/docs/team.md
+ln -s ../../dmt/dmt-director/scripts/check-dmt-doc-paths.sh <project>/scripts/check-dmt-doc-paths.sh
 ```
 
-Symlinking the whole role directory exposes the contract, README and checker under `director/` without affecting skill loading.
+Symlinking the whole role directory exposes the contract, README and checker under `dmt-director/` without affecting skill loading.
 For other harnesses (codebuddy / codex / opencode …) in a user-level skill directory, the rule is the same: **the folder name is the skill name**.
 
 ## Checker
 
 ```bash
-bash director/scripts/check-dmt-doc-paths.sh <project root>   # checks the current directory when omitted
+bash dmt-director/scripts/check-dmt-doc-paths.sh <project root>   # checks the current directory when omitted
 # override with DMT_SKILLS_DIR when the skills are not under <project>/.agents/skills (default on line 9 of the script)
 ```
 
@@ -78,5 +78,5 @@ Six checks: the six output directories plus the root `inbox/` exist (**the direc
 ## Maintenance
 
 - This repo is the **single maintenance point** for dmt; consumers keep no copy. With symlinks, skills and contract update with the repo and take effect immediately (no reinstall).
-- Contract references inside the skills do not depend on relative paths (written as "`director/team.md` (this repo; `docs/team.md` once installed)"), so symlink installs never break.
+- Contract references inside the skills do not depend on relative paths (written as "`dmt-director/team.md` (this repo; `docs/team.md` once installed)"), so symlink installs never break.
 - Harness-side skills required: `herdr` (pane control and label resolution), `pi-subagents` (sub-agents and dynamic workflow), plus mattpocock's `/to-spec`, `/to-tickets`, `/code-review`, `/tdd`, `/research` and friends (install and fallback in `team.md` §1.4).

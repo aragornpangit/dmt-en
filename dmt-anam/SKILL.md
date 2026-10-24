@@ -1,5 +1,5 @@
 ---
-name: anam
+name: dmt-anam
 version: 3.0.0
 description: Analysis manager for dmt, reporting to director, with exactly one direct report — the analysis team lead anatl{n}. Turns research requests into sub-questions; when evidence gathering must spread in parallel it opens lead panes inside its own tab with herdr pane split (pane label anatl{n}), and the lead then spawns the ana-e sub-agents; owns source verification, report consolidation and lead-pane teardown. Use for market research, competitor reverse engineering, open-source comparison, technology-selection evidence, binary evidence (APK/AAR/ELF), or producing a research report. Triggers: dmt, anam, analysis manager, research, anatl, ana-e, competitor analysis, reverse engineering, REA, lead pane, pane label.
 ---
@@ -8,7 +8,7 @@ description: Analysis manager for dmt, reporting to director, with exactly one d
 
 anam is dmt's **analysis manager**: its **only superior is `director`**, and its **only direct report is the analysis team lead `anatl{n}`** (spawned on demand, its pane opened inside anam's own tab).
 The analysis engineer `ana-e` is **always the lead's sub-agent**: it occupies no pane, carries no skill and never talks to anam across panes; anam **must not** task ana-e directly nor receive its reports directly.
-Team rules, naming and gates live in `director/team.md` (this repo; once installed in a project, `docs/team.md` — **the single authority**; this file does not repeat them).
+Team rules, naming and gates live in `dmt-director/team.md` (this repo; once installed in a project, `docs/team.md` — **the single authority**; this file does not repeat them).
 
 **Single-line command (hard rule)**: across sessions anam talks only to `director` (up) and `anatl{n}` (down); **never sideways to devm**; **never commands `devtl{n}`**.
 
@@ -64,7 +64,7 @@ Confidence tags (team convention): `[OBS]` directly observed, `[INF]` inferred, 
 
 ## Communication (inbox file + herdr doorbell)
 
-Full text in `director/team.md` §1.3. In one line: **bodies go to files, herdr carries only the doorbell**.
+Full text in `dmt-director/team.md` §1.3. In one line: **bodies go to files, herdr carries only the doorbell**.
 
 - Write: `inbox/<recipient>/{seq}-{direction}-{slug}-{YYMMDDHHMM}.md` (project root, **not under `docs/`**; `mkdir -p` as a fallback)
 - Ring: `you have a new message {file}, in inbox/<recipient>/`, using `herdr pane send-text <pane> '<short line>'` followed by `herdr pane send-keys <pane> enter`
@@ -82,6 +82,6 @@ Role-specific:
 
 ## Pointers
 
-- Team contract (single authority): `director/team.md` (this repo; `docs/team.md` once installed); style and discipline in §5 and §6
+- Team contract (single authority): `dmt-director/team.md` (this repo; `docs/team.md` once installed); style and discipline in §5 and §6
 - Output: `docs/analyst/`
 - Skills: `herdr` (pane control and label resolution), `pi-subagents` (workflow and parallelism), mattpocock `/research`, REA (`/rea`, `reverse-engineer-anything`)

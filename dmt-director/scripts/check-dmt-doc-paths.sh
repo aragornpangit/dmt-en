@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # dmt output-path checker (checks "a project that uses this team")
 # Criteria source: this repo's team.md §3 "single allowed location (hard rule)"
-# Usage: bash director/scripts/check-dmt-doc-paths.sh [project root]    defaults to the current directory
+# Usage: bash dmt-director/scripts/check-dmt-doc-paths.sh [project root]    defaults to the current directory
 #        DMT_SKILLS_DIR overrides the skill install location (default <project root>/.agents/skills)
 set -u
 
@@ -54,35 +54,35 @@ check() {
     fail=1
   fi
 }
-check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/prd/'
-check "$SKILLS_DIR/director/SKILL.md" 'docs/pd/spec/'
-check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-arch/'
-check "$SKILLS_DIR/director/SKILL.md" 'docs/human/human-plan/'
-check "$SKILLS_DIR/devm/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/anam/SKILL.md" 'docs/analyst/'
-check "$SKILLS_DIR/devtl/SKILL.md" 'docs/dev/tickets/'
-check "$SKILLS_DIR/anatl/SKILL.md" 'docs/analyst/'
+check "$SKILLS_DIR/dmt-director/SKILL.md" 'docs/pd/prd/'
+check "$SKILLS_DIR/dmt-director/SKILL.md" 'docs/pd/spec/'
+check "$SKILLS_DIR/dmt-director/SKILL.md" 'docs/human/human-arch/'
+check "$SKILLS_DIR/dmt-director/SKILL.md" 'docs/human/human-plan/'
+check "$SKILLS_DIR/dmt-devm/SKILL.md" 'docs/dev/tickets/'
+check "$SKILLS_DIR/dmt-anam/SKILL.md" 'docs/analyst/'
+check "$SKILLS_DIR/dmt-devtl/SKILL.md" 'docs/dev/tickets/'
+check "$SKILLS_DIR/dmt-anatl/SKILL.md" 'docs/analyst/'
 
 echo
 echo "== 3) the team-lead close action must be registered (close on completion; creator only; panes, never tabs) =="
 check "$CONTRACT" 'herdr pane close' 'team contract'
 check "$CONTRACT" 'close before collecting' 'team contract'
 check "$CONTRACT" 'herdr tab close' 'team contract'   # registered as a prohibition; its presence proves the ban is still there
-check "$SKILLS_DIR/devm/SKILL.md" 'herdr pane close' 'devm'
-check "$SKILLS_DIR/anam/SKILL.md" 'herdr pane close' 'anam'
+check "$SKILLS_DIR/dmt-devm/SKILL.md" 'herdr pane close' 'devm'
+check "$SKILLS_DIR/dmt-anam/SKILL.md" 'herdr pane close' 'anam'
 
 echo
 echo "== 3b) identity must resolve by pane label (never by position inside a tab) =="
 check "$CONTRACT" 'pane label' 'team contract'
 check "$CONTRACT" 'position inside a tab' 'team contract'
-for role in director devm anam devtl anatl; do
+for role in dmt-director dmt-devm dmt-anam dmt-devtl dmt-anatl; do
   check "$SKILLS_DIR/$role/SKILL.md" 'pane label' "$role"
 done
 
 echo
 echo "== 4) the team-lead parallelism criterion must be registered (independent >=2 => concurrent) =="
-check "$SKILLS_DIR/devtl/SKILL.md" 'must run in parallel' 'devtl'
-check "$SKILLS_DIR/anatl/SKILL.md" 'must run in parallel' 'anatl'
+check "$SKILLS_DIR/dmt-devtl/SKILL.md" 'must run in parallel' 'devtl'
+check "$SKILLS_DIR/dmt-anatl/SKILL.md" 'must run in parallel' 'anatl'
 check "$CONTRACT" '≥2 ⇒ dispatch concurrently' 'team contract'
 
 echo
