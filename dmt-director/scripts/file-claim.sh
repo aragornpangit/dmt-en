@@ -13,13 +13,9 @@ set -u
 # The ledger always lands at the *main worktree* root: running inside a worktree still writes
 # <main>/locks/, otherwise the director's scan of locks/dispatch-*.tsv at the project root misses it
 # and not every branch's .gitignore lists locks/.
-root="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
-if [ -n "$root" ]; then
-  case "$root" in */.git) root="${root%/.git}" ;; esac
-else
-  root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-fi
-ROOT="$root"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$DIR/lib-dmt.sh"
+ROOT="$(dmt_root)"
 LOCKS="${DMT_LOCKS_DIR:-$ROOT/locks}"
 TTL="${DMT_CLAIM_TTL:-1800}"
 mkdir -p "$LOCKS" 2>/dev/null
@@ -57,7 +53,7 @@ case "$cmd" in
     fi
     o="$(read_owner "$lock")"
     if expired "$lock"; then
-      echo "STALE $rel (previous owner $o, over ${TTL}s) — may be preempted; state the preemption in your report"
+      echo "STALE $rel (previous owner $o, over ${TTL}s) -- may be preempted; state the preemption in your report"
       exit 0
     fi
     if [ -n "$owner" ] && [ "$o" = "$owner" ]; then

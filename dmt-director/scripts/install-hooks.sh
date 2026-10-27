@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Install dmt's dispatch hard rules as CodeBuddy hooks
 # Usage:
-#   bash install-hooks.sh <project-root>     install into <project>/.codebuddy/settings.json (scripts from <project>/scripts)
-#   bash install-hooks.sh --user             install into ~/.codebuddy/settings.json (scripts from this repo; all manager roles machine-wide)
-#   --dry-run prints the target path only
-# Governed roles: director / pm / devm / anam (DMT_DISPATCH_ALL=1 widens it to leaders)
+#   bash install-hooks.sh <project-root>     install into <project>/.codebuddy/settings.json (scripts from <project>/dmt-director/scripts)
+#   bash install-hooks.sh --user             install into ~/.codebuddy/settings.json (scripts from this repo; all dispatch roles machine-wide)
+#   --dry-run only print the target path
+# Governed roles: director / devm / anam and helpers (DMT_DISPATCH_ALL=1 widens it to other roles)
 set -eu
 ARG1="${1:?usage: install-hooks.sh <project-root>|--user [--dry-run]}"
 DRY=0; [ "${2:-}" = "--dry-run" ] && DRY=1
@@ -23,7 +23,8 @@ if [ "$DRY" = 1 ]; then echo "would write $CFG (scripts: $DIR)"; exit 0; fi
 mkdir -p "$(dirname "$CFG")"
 # a copied script tree loses the executable bit; the hook runs via `bash` but 4j checks -x
 chmod +x "$DIR"/*.sh 2>/dev/null || true
-[ -f "$CFG" ] && cp "$CFG" "$CFG.bak-$(date +%Y%m%d%H%M%S)"
+# Always overwrite a single .bak (the old version kept a timestamped copy on every install, piling up forever)
+[ -f "$CFG" ] && cp "$CFG" "$CFG.bak"
 
 python3 - "$CFG" "$DIR" <<'PY'
 import json, os, sys
@@ -34,7 +35,7 @@ if os.path.exists(cfg):
     except Exception: data = {}
 hooks = data.setdefault("hooks", {})
 def is_dmt(cmd):
-    return ("dispatch-ledger.sh" in cmd) or ("self-work-guard.sh" in cmd)
+    return ("dispatch-ledger.sh" in cmd) or ("self-work-guard.sh" in cmd) or ("parallel-guard.sh" in cmd)
 # drop previous dmt entries so a matcher change cannot leave a duplicate behind
 for ev in list(hooks):
     kept = []
@@ -48,10 +49,13 @@ def add(event, matcher, cmd):
     hooks.setdefault(event, []).append(entry)
 # matcher "*" everywhere: the scripts filter by tool_name / file path themselves
 add("PostToolUse", "*", "bash " + d + "/dispatch-ledger.sh inc - auto")
+add("PostToolUse", "*", "bash " + d + "/dispatch-ledger.sh nudge -")
 add("Stop", None, "bash " + d + "/dispatch-ledger.sh check -")
 add("PreToolUse", "*", "bash " + d + "/self-work-guard.sh -")
+add("PreToolUse", "*", "bash " + d + "/parallel-guard.sh -")
+add("SessionStart", None, "bash " + d + "/dispatch-ledger.sh inject -")
 json.dump(data, open(cfg, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print("hooks written to", cfg)
 PY
-echo "roles governed: director|pm|devm|anam (override with DMT_DISPATCH_ALL=1)"
+echo "roles governed: director|devm|anam|director-helper|devm-helper|anam-helper (override with DMT_DISPATCH_ALL=1)"
 echo "role is resolved from DMT_ROLE or the herdr pane label; ungoverned sessions exit 0 immediately"
