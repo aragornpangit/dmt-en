@@ -4,6 +4,9 @@ Role-skill repo for the dmt team: **the single maintenance point for the team de
 **The product department has only three levels**: `pm` spawns `pm-e` sub-agents directly and has no lead tier.
 **The lead tier is on demand and has a numeric criterion**: a manager **spawns engineer sub-agents itself while its queued tasks stay within the threshold** (`devm` ≤4, `anam` ≤4); **once the threshold is exceeded** it opens a lead pane with `herdr pane split` **inside its own tab** (pane label fixed to `devtl{n}` / `anatl{n}`, **cbc harness preferred**, then types `/dmt-dtl` / `/dmt-atl`), and the lead spawns engineer sub-agents after taking the order; the lead pane is closed as soon as it is done.
 
+> **Scope (read first)**: every rule in this repo — role permissions, **write ownership (install / `git push` / merge)**, gates, pane lifecycle, inbox rules — applies **only to the "target project" managed by the dmt workflow** (the project root initialized by `init-project.sh`).
+> **Maintaining the `dmt` / `dmt-en` skill repositories themselves is not covered**: a maintainer (human or another agent) may `git add` / `git commit` / `git push` directly, **without director authorization and without devm acting as the pusher**.
+
 | Role | Skill name | Runtime id (pane label) | Reports to | Direct reports | Responsibility summary |
 |---|---|---|---|---|---|
 | Director (team lead) | `dmt-director` | `director` | Human | `pm`, `devm`, `anam` | The only entry point; takes requirements and acceptance criteria, dispatches, arbitrates, creates and maintains the manager-tier panes/tabs; publishes after spot-checking (`git push`) and installs to devices; **does not replace** pm's document review or devm's code review |

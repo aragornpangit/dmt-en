@@ -1,6 +1,8 @@
 # dmt Team Contract
 
-> **Version 4.1.0 · 2026-10-24** — same number as the `version:` field in the six role `SKILL.md` files; when spot-checking, read this line first to confirm which version is loaded. A mismatch means the wrong install.
+> **Version 4.1.1 · 2026-10-27** — same number as the `version:` field in the six role `SKILL.md` files; when spot-checking, read this line first to confirm which version is loaded. A mismatch means the wrong install.
+> **Scope (read first)**: every rule in this document — role permissions, **write ownership (install / `git push` / merge)**, gates, pane lifecycle, inbox rules — applies **only to the "target project" managed by the dmt workflow** (the project root initialized by `init-project.sh`), i.e. the software the team is building.
+> **It does not apply to maintaining the dmt skill repositories themselves** (`dmt` / `dmt-en` / other skill repos): a maintainer (human or another agent) may `git add` / `git commit` / `git push` directly, **without director authorization and without devm acting as the pusher**; likewise, the install permission only constrains device writes inside the target project.
 > This file is the **single team definition for dmt**: organization, members, communication, file naming, workflows, directory responsibilities and discipline; the six role skills `dmt-director` / `dmt-pm` / `dmt-dm` / `dmt-am` / `dmt-dtl` / `dmt-atl` (run ids `director` / `pm` / `devm` / `anam` / `devtl{n}` / `anatl{n}`) only provide implementation notes, and **this file prevails in any conflict**.
 > Team members run inside the terminal multi-agent multiplexer Herdr; sessions and panes change across restarts, so this file does not record pane ids.
 
