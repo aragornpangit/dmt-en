@@ -9,7 +9,7 @@
 
 | # | Item | Criterion | Status |
 |---|---|---|---|
-| P1 | Subagent has no skill list (`delegate` `inheritSkills: false`) | For a custom agent with `inheritSkills: false + skills:[…]`, the subagent's `<available_skills>` contains **only the listed skills** | **DONE** (`harness/pi-agents/`; observed in test: only `dmt-de/tdd/code-review/diagnosing-bugs`) |
+| P1 | Subagent has no skill list (`delegate` `inheritSkills: false`) | A custom agent with `inheritSkills: false + skills:[…]` gives a subagent whose `<available_skills>` holds **only the listed skills, and the injected set must equal the declared set item by item** (`disable-model-invocation: true` is silently filtered ⇒ such skills go into the prompt as paths, never into `skills:`) | **DONE** (`harness/pi-agents/`; 2026-11-06 measured: `dmt-dev-e` 4, `dmt-pde` 3, `dmt-ana-e` 3 — matching the reshaped declarations; guarded statically by check A6c) |
 | P2 | No Skill tool (forwarding-style skills silently fail) | `harness/pi.md` §5.1 lists the degraded reading approach for `grill-with-docs`/`grill-me`/`implement`/`tdd` | **DONE** |
 | P3 | Concurrency cap undeclared (matrix `null`) | `harness_matrix.yaml` has a value for `pi.max_subagents_conc`, consistent with pi-subagents defaults (`maxTasks=8` / `concurrency=4`) | **DONE** (filled in 8 plus a note on the config key) |
 | P4 | Same-name skills registered twice (`tdd`/`code-review` twice each) | `harness/pi.md` §4.4 states the cause and the avoidance (name them via `skills:`; keep only one copy) | **DONE** |

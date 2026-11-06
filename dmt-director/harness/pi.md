@@ -56,6 +56,16 @@ pi-subagents allows custom agents (`~/.pi/agent/agents/**/*.md` user level, `<pr
 | input box `/skill:dmt-<role>` | ✅ | writing `/dmt-<role>` does not error but **silently becomes an ordinary question** |
 | user-level `~/.agents/skills/`, `~/.pi/agent/skills/` | ✅ | no approve needed |
 
+**Measurement addendum (2026-11-06, three real subagents echoing their `<available_skills>`)**
+
+| agent definition | declared `skills:` | actually injected | filtered out |
+|---|---|---|---|
+| `dmt-dev-e` | `dmt-de, tdd, implement, code-review, diagnosing-bugs` | `dmt-de, tdd, code-review, diagnosing-bugs` | `implement` |
+| `dmt-pde` | `dmt-pde, grilling, research, to-spec, to-tickets` | `dmt-pde, grilling, research` | `to-spec`, `to-tickets` |
+| `dmt-ana-e` | `dmt-ae, research, grilling, grill-me, grill-with-docs` | `dmt-ae, research, grilling` | `grill-me`, `grill-with-docs` |
+
+⇒ every filtered skill carries `disable-model-invocation: true`. The drop is **silent, with no warning**, so "declared equals available" is false and must be measured.
+
 ### 4.3 Fallback (kept as-is)
 
 When none of the above applies (e.g. changing agent definitions is not permitted): give the **absolute path** in the dispatch prompt as `read <skill directory>/dmt-<role>/SKILL.md`, and handle forwarding skills per `§5.1`. This always works, but it relies on the model following the prompt and requires listing a path for every downstream skill.
@@ -65,7 +75,7 @@ When none of the above applies (e.g. changing agent definitions is not permitted
 - **Duplicate registration of same-named skills**: measured, `tdd` / `code-review` each appear twice in the subagent catalog (`~/.agents/skills/mattpocock-skills/...` and the pi git package, one each) ⇒ naming them explicitly in `skills:` avoids the ambiguity; when both are installed, prefer keeping a single copy.
 - **`delegate`'s tools allowlist does not include `subagent`** (its definition is `tools: read, grep, find, ls, bash, edit, write, contact_supervisor`) ⇒ subagents cannot spawn subagents; when nesting is needed add `allowNestedSubagents: true` or `tools: subagent` in the custom agent.
 - **Project-level agent definitions are equally trust-constrained**: when Pi has not approved project trust, project agents are ignored (`agentScope` falls back to user).
-- Skills with `disable-model-invocation: true` (`to-spec` / `to-tickets` / `implement` / `grill-me` / `grill-with-docs` etc.) **do not appear in the model-visible catalog**, but `/skill:<name>` can still invoke them explicitly; listing them in a custom agent's `skills:` is also not blocked by that flag (it only affects "model auto-selection").
+- Skills with `disable-model-invocation: true` (`to-spec` / `to-tickets` / `implement` / `grill-me` / `grill-with-docs` etc.) **do not appear in the model-visible catalog**; `/skill:<name>` can still invoke them explicitly, but **listing them in a custom agent's `skills:` is filtered as well** (2026-11-06 measurement disproved the earlier note that the flag only affects model auto-selection): 5 declared, 4 delivered, and `to-spec`/`to-tickets` both silently dropped with **no error**. ⇒ put only flag-free skills in `skills:`; give the filtered ones a `SKILL.md` path in the agent prompt and let the subagent `read` it (all four `pi-agents/` files are shaped this way).
 
 ## 5. How to obtain the mandatory skills (mattpocock) on pi
 

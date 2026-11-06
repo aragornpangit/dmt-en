@@ -1,6 +1,6 @@
 ---
 name: dmt-ae
-version: 5.18.6
+version: 5.18.7
 description: Analysis engineer (ana-e), anam's evidence-gathering sub-agent, executes a single evidence unit, primary sources first, reproducible commands, graded evidence. Used for market research, competitive reverse engineering, technology selection and APK / AAR / ELF evidence analysis. Trigger words: dmt, ana-e, analysis engineer, evidence, competitor, reverse engineering, REA, research.
 ---
 

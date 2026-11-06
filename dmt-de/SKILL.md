@@ -1,6 +1,6 @@
 ---
 name: dmt-de
-version: 5.18.6
+version: 5.18.7
 description: Development engineer (dev-e), devm's development sub-agent, implements per SPEC and ticket inside an isolated worktree, self-reviews and commits. Used for development tickets, TDD, defect fixes and regression localization. Trigger words: dmt, dev-e, development engineer, ticket, TDD, worktree, tdd.
 ---
 

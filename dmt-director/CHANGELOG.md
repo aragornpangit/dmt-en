@@ -1,6 +1,6 @@
 # dmt team contract · changelog (English mirror)
 
-> **Version `5.18.6` · 2026-11-06** — same number as the `version:` field in the seven role `SKILL.md` files.
+> **Version `5.18.7` · 2026-11-06** — same number as the `version:` field in the seven role `SKILL.md` files.
 > This file records only the **English-mirror history**; the full, item-by-item history (87 entries, Chinese) lives in the
 > upstream [`dmt`](https://github.com/aragornpangit/dmt) repository under `dmt-director/CHANGELOG.md`, and its semantic digest in
 > `CHANGELOG-DIGEST.md`. Entries are facts as of their date and are never rewritten or renumbered.
