@@ -13,8 +13,8 @@ The **per-harness loading** rules for skills live here, split into "one shared h
 
 **pi subagent agent definitions**: `pi-agents/` provides one agent definition for each of dmt's four subagent roles (`inheritSkills: false` plus a `skills:` allowlist), laid down into the target project's `.pi/agents/` by `install-skills.sh --harness pi` — this solves pi subagents' "no skill list, no Skill tool" problem. Mechanism and measurements: [`pi.md`](pi.md) §4.1.
 
-**Test report and improvement list**: end-to-end measurements across the five harnesses are in [`../../logs/2026-11-06-harness-test-report.md`](../../logs/2026-11-06-harness-test-report.md); per-harness defects and improvement status (with criteria) are in [`BACKLOG.md`](BACKLOG.md).
+**Test report and improvement list**: end-to-end measurements across the five harnesses are in `logs/2026-11-06-harness-test-report.md`（仓内）; per-harness defects and improvement status (with criteria) are in [`BACKLOG.md`](BACKLOG.md).
 
-**Single source**: machine-readable facts such as directories / slash prefixes / launch commands / concurrency caps live **only** in [`../harness_matrix.yaml`](../harness_matrix.yaml); the `.md` files in this directory are explanations for humans / models, and consistency between the two is guarded by machine checks (A8).
+**Single source**: machine-readable facts such as directories / slash prefixes / launch commands / concurrency caps live **only** in [`../harness_matrix.yaml`](../../dmt-director/harness_matrix.yaml); the `.md` files in this directory are explanations for humans / models, and consistency between the two is guarded by machine checks (A8).
 
 **Operations layer**: pane shapes, launch order, and permission-tier re-verification are in [`../ops/runtime.md`](../ops/runtime.md); the doorbell and inbox are in [`../ops/comms.md`](../ops/comms.md).

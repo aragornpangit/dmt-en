@@ -1,6 +1,6 @@
 ---
 name: dmt-director
-version: 5.18.7
+version: 5.18.8
 description: Director and product department manager (director), the sole user entry point for dmt. Receives requirements, sets acceptance criteria, dispatches and arbitrates; PRDs / SPECs / tickets are written by pde{n} and finalized by director, human documents are written by director in person; main-track code acceptance belongs to devm, while director does spot checks and high-risk re-verification. Used for requirement planning, product documents, team coordination, organization maintenance and acceptance arbitration. Trigger words: dmt, director, requirements, PRD, SPEC, ticket, acceptance, spot check, devm, anam.
 ---
 

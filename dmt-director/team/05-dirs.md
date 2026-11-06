@@ -13,7 +13,7 @@
 | `docs/human/human-plan/` | director | Human plan document | none |
 | `dmt-director/team.md` (the original; `install-skills.sh` symlinks `team.md` and `OPS.md` into `docs/`, and the files under `ops/` into `docs/ops/`) | director | Team contract (this file; after installation the entry point is `docs/team.md`) | the symlink follows the original (except in `--copy` mode) |
 | `docs/handoff/` | director / devm | Hand-off notes (`{director,devm}-{slug}-{YYMMDD-HHMM}-v{N}.md`; **spot-check / re-verification verdicts may also be written here**); in other cases write only when the user asks | none |
-| `inbox/<recipient role>/` | written by the sender, deleted by the recipient after reading | Inter-role messages (runtime channel, **not committed**, **at the project root, not under `docs/`**) | direction and `{seq}` per [`dmt-director/ops/comms.md`](dmt-director/ops/comms.md) |
+| `inbox/<recipient role>/` | written by the sender, deleted by the recipient after reading | Inter-role messages (runtime channel, **not committed**, **at the project root, not under `docs/`**) | direction and `{seq}` per [`dmt-director/ops/comms.md`](../ops/comms.md) |
 
 1. The paths above are the **only permitted locations**; never write to `docs/pd/` (other than `prd/`, `spec/`), `docs/dev/` (other than `tickets/`), `docs/human/` (other than `human-arch/`, `human-plan/`), `docs/test/` or anywhere else; the inbox lives only under `inbox/` at the project root and never goes into `docs/`; do not create new document directories of your own.
 2. Each department's artifact directories **stay strictly separate**: read-only references are fine, moving or renaming is not.
@@ -34,6 +34,6 @@ The script does three things: creates the six artifact directories plus three in
 
 - **Done criterion**: the machine check prints `ALL_PASS`. When a directory is missing the script reports `FAIL directory missing`; the director fills the gap and reruns.
 - **Directories only, no artifacts**: empty directories get no placeholder files, so they are never mistaken for existing deliverables.
-- **`locks/` is a runtime channel**: file claim registration is described in [`dmt-director/ops/file-claim.md`](dmt-director/ops/file-claim.md) and is not committed.
+- **`locks/` is a runtime channel**: file claim registration is described in [`dmt-director/ops/file-claim.md`](../ops/file-claim.md) and is not committed.
 - **anam / devm do not create artifact directories**: if their target directory is missing they report to the director (inbox directories are a runtime channel and may be created on demand with `mkdir -p` as a fallback).
 - The contract file `dmt-director/team.md` and skill installation are not part of this step (see `README.md` for installation).

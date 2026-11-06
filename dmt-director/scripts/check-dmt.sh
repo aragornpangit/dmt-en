@@ -340,9 +340,9 @@ while IFS=$'\t' read -r src target; do
      { [ "$IN_REPO" -eq 0 ] && [ -e "$ROOT/docs/ops/$target" ]; } ||
      { [ "$IN_REPO" -eq 0 ] && { [ -e "$alt" ] || [ -e "$ROOT/$target" ] || [ -e "$ROOT/dmt-director/$target" ]; }; }; then
     ok "链接 ${src#$REPO/} -> $target"
-  elif [ "$IN_REPO" -eq 1 ] && [ -e "$target" ]; then
-    ok "链接 ${src#$REPO/} -> $target"
   else
+    # 仓内**不再回退到仓根解析**：回退会把「team/ 里写 dmt-director/ops/…」这类
+    # 错误写法判成可达（2026-11-06 实测：10 处真断链被它掩盖）。链接必须从所在文件解析。
     bad "断链 ${src#$REPO/} -> $target"
   fi
 done < <(python3 - "$REPO" "$DOCS_DIR" <<'PY'

@@ -1,6 +1,6 @@
 ### 1.3 Communication (inbox files + herdr doorbell)
 
-**Operating details: see [`dmt-director/ops/comms.md`](dmt-director/ops/comms.md)** — direction codes, paths, the doorbell and the three states.
+**Operating details: see [`dmt-director/ops/comms.md`](../ops/comms.md)** — direction codes, paths, the doorbell and the three states.
 
 ### 1.4 Dependent harness skills (mattpocock, mandatory)
 
@@ -30,7 +30,7 @@
 
 **Installation**: `npx skills@latest add mattpocock/skills -a <agent>` (pi / opencode / codebuddy / amp / cursor / devin / windsurf); for Codex use `codex plugin marketplace add mattpocock/skills`, then `codex plugin add mattpocock-skills@mattpocock`. On failure, clone `https://github.com/mattpocock/skills.git`, copy the skill directories to `~/.agents/skills/` and symlink them into the harness skill directory; pick either the Codex plugin or the compatible copy, so the same skill is never registered twice.
 
-**Harness differences**: `.agents/skills/` is read only by codex / opencode / pi; claude / codebuddy each use a private directory. Machine facts such as directories / prefixes / startup are in §1.2 and [`../harness_matrix.yaml`](../harness_matrix.yaml); how skills are loaded is in [`../harness/`](../harness/README.md).
+**Harness differences**: `.agents/skills/` is read only by codex / opencode / pi; claude / codebuddy each use a private directory. Machine facts such as directories / prefixes / startup are in §1.2 and [`../../dmt-director/harness_matrix.yaml`](../../dmt-director/harness_matrix.yaml); how skills are loaded is in [`../harness/`](../harness/README.md).
 
 **Known gaps**:
 
@@ -39,4 +39,4 @@
 
 ### 1.5 File claims (check before editing)
 
-**Operating details: see [`dmt-director/ops/file-claim.md`](dmt-director/ops/file-claim.md)**.
+**Operating details: see [`dmt-director/ops/file-claim.md`](../ops/file-claim.md)**.

@@ -1,6 +1,6 @@
 ### 1.2 Runtime environment and pane lifecycle
 
-**Operating details: see [`dmt-director/ops/runtime.md`](dmt-director/ops/runtime.md)** — pane/tab shapes, startup, permissions and helper lifecycle.
+**Operating details: see [`dmt-director/ops/runtime.md`](../ops/runtime.md)** — pane/tab shapes, startup, permissions and helper lifecycle.
 
 **Harness compatibility**:
 
@@ -17,7 +17,7 @@
 1. Skill invocation always goes through `lib-dmt.sh: dmt_skill_cmd`; pi uses `/skill:<name>`, everything else uses `/<name>`. Codex plugin skills additionally go through `dmt_skill_ref` to produce the qualified name.
 2. `install-skills.sh` installs to three places by default: `.agents/skills/`, `.claude/skills/`, `.codebuddy/skills/`; installing only one leaves harnesses uncovered.
 3. The first time Codex enters a project, trust must be confirmed by hand; its skill and helper tasks must be delivered along with the first-round prompt. pi must be started with `--approve`.
-4. After startup, re-verify auto mode by reading argv with `dmt_pane_auto_mode`; verify that the role skill loaded correctly from that role's actual artifacts and receipts. If it is not in auto mode, restart with `setup-team.sh --force-start`. Incident details: [`dmt-director/ops/permission-notes.md`](dmt-director/ops/permission-notes.md).
+4. After startup, re-verify auto mode by reading argv with `dmt_pane_auto_mode`; verify that the role skill loaded correctly from that role's actual artifacts and receipts. If it is not in auto mode, restart with `setup-team.sh --force-start`. Incident details: [`dmt-director/ops/permission-notes.md`](../ops/permission-notes.md).
 5. A Codex agent name is not the role identity; the doorbell resolves its target by pane label only, and sends an `agent prompt` or pane input to the pane.
 
 **Skill loading (one file per harness)**: the notes on "skill discovery directories / startup and permissions / skill invocation line / how skills reach the model / sub-agent hosting" live in [`../harness/README.md`](../harness/README.md) — the **common part** in [`../harness/COMMON.md`](../harness/COMMON.md) plus **one difference file per harness** ([`pi.md`](../harness/pi.md) / [`codebuddy.md`](../harness/codebuddy.md) / [`claude.md`](../harness/claude.md) / [`codex.md`](../harness/codex.md) / [`opencode.md`](../harness/opencode.md)).

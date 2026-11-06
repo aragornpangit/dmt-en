@@ -2,7 +2,7 @@
 
 > The three pane skills (`dmt-director` / `dmt-dm` / `dmt-am`) are **fully isomorphic** on the four items **identity and pane, communication, helper, file claims**; only the role name / direction code / reporting line differ. This file holds the common part; each skill writes just the one "differences for this role" line.
 
-## Identity and pane (details in [`dmt-director/ops/runtime.md`](dmt-director/ops/runtime.md))
+## Identity and pane (details in [`dmt-director/ops/runtime.md`](../ops/runtime.md))
 
 - **Identity = pane label**: the role name equals your own pane label and is unique across the workspace; **do not identify yourself by tab position and do not remember pane ids** (they change on restart). Startup self-check: if the label from `herdr pane get "$HERDR_PANE_ID"` does not match, self-heal with `pane rename`.
 - **Do not create tabs / panes yourself** (the only exception: create the team-wide `helper` tab when it does not exist); `director` is exempt (it creates the `devm` / `anam` panes, see its skill).
@@ -10,7 +10,7 @@
 
 ## Communication / helper / claims
 
-See [`dmt-director/ops/comms.md`](dmt-director/ops/comms.md), [`dmt-director/ops/helper.md`](dmt-director/ops/helper.md) and [`dmt-director/ops/file-claim.md`](dmt-director/ops/file-claim.md) respectively. This page does not restate the operating steps.
+See [`dmt-director/ops/comms.md`](../ops/comms.md), [`dmt-director/ops/helper.md`](../ops/helper.md) and [`dmt-director/ops/file-claim.md`](../ops/file-claim.md) respectively. This page does not restate the operating steps.
 
 ## Closing out
 

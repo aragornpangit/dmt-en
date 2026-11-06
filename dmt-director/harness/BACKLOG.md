@@ -1,7 +1,7 @@
 # Per-harness improvement list (BACKLOG)
 
-> **Chinese source**: see [`../../logs/2026-11-06-harness-test-report.md`](../../logs/2026-11-06-harness-test-report.md).
-> Source: end-to-end testing of five harnesses ([`../../logs/2026-11-06-harness-test-report.md`](../../logs/2026-11-06-harness-test-report.md)).
+> **Chinese source**: see repo-local `logs/2026-11-06-harness-test-report.md`.
+> Source: end-to-end testing of five harnesses （仓内 `logs/2026-11-06-harness-test-report.md`）.
 > Status: `DONE` = improvement landed in the repo; `WATCH` = environment-side / upstream-side issue, the repo can only provide a fallback and record it; `OPEN` = to do.
 > **Discipline**: every item must state a "criterion" (how to verify the fix is good); "fixed, therefore done" is not accepted.
 

@@ -1,6 +1,6 @@
 # harness differences: codex (OpenAI Codex CLI)
 
-> For the shared parts see [`COMMON.md`](COMMON.md); the single source of machine-readable facts is [`../harness_matrix.yaml`](../harness_matrix.yaml).
+> For the shared parts see [`COMMON.md`](COMMON.md); the single source of machine-readable facts is [`../harness_matrix.yaml`](../../dmt-director/harness_matrix.yaml).
 
 ## 1. Skill discovery directories
 

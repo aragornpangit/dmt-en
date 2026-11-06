@@ -1,6 +1,6 @@
 # harness delta: pi (pi-coding-agent)
 
-> For commonality see [`COMMON.md`](COMMON.md); machine-readable facts (directories / prefixes / launch / concurrency) single source [`../harness_matrix.yaml`](../harness_matrix.yaml).
+> For commonality see [`COMMON.md`](COMMON.md); machine-readable facts (directories / prefixes / launch / concurrency) single source [`../harness_matrix.yaml`](../../dmt-director/harness_matrix.yaml).
 > Except where noted, this section is **entirely measured on this machine on 2026-11-05** (`harness-detect.sh` re-checked pane by pane plus `pi -p --approve` session probes).
 
 ## 1. Skill discovery directories
