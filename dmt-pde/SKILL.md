@@ -1,6 +1,6 @@
 ---
 name: dmt-pde
-version: 5.18.8
+version: 5.18.9
 description: Product engineer (pde{n}), director's product sub-agent, writes PRDs / SPECs / tickets and performs product evidence gathering, boundary enumeration and acceptance-criteria checking. Used for product documents, requirement consistency and existing-document verification. Trigger words: dmt, pde, product engineer, PRD, SPEC, ticket, user story, acceptance criteria.
 ---
 

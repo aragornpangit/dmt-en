@@ -37,6 +37,12 @@ done
 note() { [ "$EXPLAIN" = 1 ] && echo "[detect] $*" >&2; return 0; }
 
 # 名字归一化 + 白名单；非法给空串
+# 共享库：dmt_herdr 带「陈旧 HERDR_* 自愈」（codex 常驻 shell 实测）；缺失时退化为原调用。
+SELF_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+if [ -f "$SELF_DIR/lib-dmt.sh" ]; then . "$SELF_DIR/lib-dmt.sh"; else
+  dmt_herdr() { if [ -n "${DMT_HERDR_SOCKET_PATH:-}" ]; then HERDR_SOCKET_PATH="$DMT_HERDR_SOCKET_PATH" HERDR_ENV=1 herdr "$@" 2>/dev/null; else HERDR_ENV=1 herdr "$@" 2>/dev/null; fi; }
+fi
+
 norm() {
   case "${1:-}" in
     pi|claude|codex|opencode) printf '%s' "$1" ;;
@@ -52,11 +58,7 @@ pane_argv() {
   if [ -n "${DMT_PANE_ARGV+x}" ]; then printf '%s' "$DMT_PANE_ARGV"; return 0; fi
   [ -n "$pane" ] || return 0
   local out
-  if [ -n "${DMT_HERDR_SOCKET_PATH:-}" ]; then
-    out="$(HERDR_SOCKET_PATH="$DMT_HERDR_SOCKET_PATH" HERDR_ENV=1 herdr pane process-info --pane "$pane" 2>/dev/null || true)"
-  else
-    out="$(HERDR_ENV=1 herdr pane process-info --pane "$pane" 2>/dev/null || true)"
-  fi
+  out="$(dmt_herdr pane process-info --pane "$pane" 2>/dev/null || true)"
   printf '%s' "$out" | jq -r '.result.process_info.foreground_processes[0].argv // [] | join(" ")' 2>/dev/null || true
 }
 

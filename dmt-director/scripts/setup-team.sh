@@ -59,8 +59,8 @@ ensure_started() {
       if [ "$FIRST_PROMPT" = 1 ]; then
         echo "WARN codex 的首轮 prompt 只在启动时生效；技能重载须重开 pane: $pane" >&2
       else
-        h env HERDR_ENV=1 herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$skill_name")"
-        h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+        h dmt_herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$skill_name")"
+        h dmt_herdr pane send-keys "$pane" enter
         echo "reloaded skill on $pane"
       fi
     fi
@@ -71,14 +71,14 @@ ensure_started() {
     # 否则第二次粘贴会落进确认界面而不是成为会话 prompt。
     h env HERDR_ENV=1 DMT_PANE_ROLE="$role" herdr pane send-text "$pane" \
       "DMT_PANE_ROLE=$role $HARNESS_CMD '$prompt'"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-keys "$pane" enter
     wait_ready "$pane" || true
   else
-    h env HERDR_ENV=1 herdr pane send-text "$pane" "$HARNESS_CMD"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-text "$pane" "$HARNESS_CMD"
+    h dmt_herdr pane send-keys "$pane" enter
     wait_ready "$pane" || true
-    h env HERDR_ENV=1 herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$skill_name")"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$skill_name")"
+    h dmt_herdr pane send-keys "$pane" enter
   fi
   # 档位复验（第六十三次）：就绪只证明「有 agent 在跑」，不证明它跑在自动档。
   # 非自动档的 pane 每次工具调用都要人点批准 —— 表现为「脚本超时/命令失败」，根因却在权限层。
@@ -99,8 +99,8 @@ verify_auto_mode() {
 }
 
 # 1) 自己正名：先 tab 后 pane
-h env HERDR_ENV=1 herdr tab rename "$HERDR_TAB_ID" director
-h env HERDR_ENV=1 herdr pane rename "$HERDR_PANE_ID" director
+h dmt_herdr tab rename "$HERDR_TAB_ID" director
+h dmt_herdr pane rename "$HERDR_PANE_ID" director
 
 # 2) devm：在 director pane 右侧 split（与 director 同 tab，左 director 右 devm）
 devm="$(pane_by_label devm || true)"
@@ -110,9 +110,9 @@ if [ -z "$devm" ]; then
     echo "+ herdr pane rename <devm-pane> devm" >&2
     devm="<devm-pane>"
   else
-    devm="$(HERDR_ENV=1 herdr pane split "$HERDR_PANE_ID" --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id // empty')"
+    devm="$(dmt_herdr pane split "$HERDR_PANE_ID" --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id // empty')"
     [ -n "$devm" ] || { echo "ERROR: pane split 失败（devm）" >&2; exit 4; }
-    HERDR_ENV=1 herdr pane rename "$devm" devm
+    dmt_herdr pane rename "$devm" devm
   fi
 fi
 ensure_started "$devm" dmt-dm devm
@@ -121,18 +121,18 @@ ensure_started "$devm" dmt-dm devm
 p="$(pane_by_label anam || true)"
 if [ -z "$p" ]; then
   # 幂等按 tab label 判：已有 anam tab（pane label 漂移）⇒ 取该 tab 的 pane 改名，不再建第二个 tab
-  tab="$(HERDR_ENV=1 herdr tab list --workspace "$HERDR_WORKSPACE_ID" 2>/dev/null | jq -r '.result.tabs[]? | select(.label=="anam") | .tab_id' 2>/dev/null | head -1 || true)"
+  tab="$(dmt_herdr tab list --workspace "$HERDR_WORKSPACE_ID" 2>/dev/null | jq -r '.result.tabs[]? | select(.label=="anam") | .tab_id' 2>/dev/null | head -1 || true)"
   if [ -n "$tab" ]; then
-    p="$(HERDR_ENV=1 herdr pane list --workspace "$HERDR_WORKSPACE_ID" 2>/dev/null | jq -r --arg t "$tab" '.result.panes[]? | select(.tab_id==$t) | .pane_id' 2>/dev/null | head -1 || true)"
-    h env HERDR_ENV=1 herdr pane rename "$p" anam
+    p="$(dmt_herdr pane list --workspace "$HERDR_WORKSPACE_ID" 2>/dev/null | jq -r --arg t "$tab" '.result.panes[]? | select(.tab_id==$t) | .pane_id' 2>/dev/null | head -1 || true)"
+    h dmt_herdr pane rename "$p" anam
   elif [ "$DRY" = 1 ]; then
     echo "+ herdr tab create --workspace $HERDR_WORKSPACE_ID --cwd $PWD --label anam" >&2
     echo "+ herdr pane rename <anam-pane> anam" >&2
     p="<anam-pane>"
   else
-    p="$(HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label anam | jq -r '.result.root_pane.pane_id // empty')"
+    p="$(dmt_herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label anam | jq -r '.result.root_pane.pane_id // empty')"
     [ -n "$p" ] || { echo "ERROR: tab create 失败（anam）" >&2; exit 4; }
-    HERDR_ENV=1 herdr pane rename "$p" anam
+    dmt_herdr pane rename "$p" anam
   fi
 fi
 ensure_started "$p" dmt-am anam

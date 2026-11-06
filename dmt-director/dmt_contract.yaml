@@ -5,7 +5,7 @@
 # check-dmt-doc-paths.sh（已合并）里的大段中文 grep（改一个字就红、复述就绿的脆断言）。
 # 散文纪律（流程、话术）仍由 team.md 承载，这里只放可机读的结构。
 
-version: 5.18.8
+version: 5.18.9
 date: "2026-11-06"
 
 skills:
@@ -68,17 +68,6 @@ skill_budgets:
   dmt-ae: 3000
   dmt-reviewer: 3500
 
-org:
-  director:
-    reports_to: user
-    direct_reports: [devm, anam]
-  devm:
-    reports_to: director
-    direct_reports: ["dev-e", "reviewer{n}"]
-  anam:
-    reports_to: director
-    direct_reports: ["ana-e"]
-
 scripts:
   - lib-dmt.sh
   - harness-matrix.sh
@@ -101,6 +90,10 @@ scripts:
   - install-git-hooks.sh
   - auto-review-model.sh
   - harness-detect.sh
+
+# repo-level helper scripts (not installed into projects)
+repo_scripts:
+  - scripts/sync-mattpocock-codex-compat.sh
 
 forbidden_scripts:
   - probe-cap.sh
@@ -162,7 +155,7 @@ content_assertions:
     repo_only: true
     files:
       "{repo}/README.md":
-        require: ["5.18.8", 'DMT_SKILLS_DIR="$PWD" bash dmt-director/scripts/check-dmt.sh "$PWD"']
+        require: ["5.18.9", 'DMT_SKILLS_DIR="$PWD" bash dmt-director/scripts/check-dmt.sh "$PWD"']
   install_ops:
     files:
       "{scripts}/install-skills.sh":

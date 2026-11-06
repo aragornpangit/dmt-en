@@ -57,6 +57,13 @@ dmt_role() {
 # herdr 查询统一入口。$DMT_HERDR_SOCKET_PATH 可显式指定当前 workspace 的 socket；
 # 其余情况沿用 herdr 的 session 发现。
 dmt_herdr() {
+  # 惰性自愈（2026-11-06 第八十八次）：第一次调用时若当前 herdr 环境连不上，
+  # 先按 dmt_herdr_env_fix 修正 socket/session —— codex 的常驻 shell 会带着
+  # 已废弃 session 的 HERDR_* 进来，裸 `herdr` 每次都失败。用一个哨兵变量防递归。
+  if [ -z "${DMT_HERDR_BOOTSTRAPPED:-}" ]; then
+    DMT_HERDR_BOOTSTRAPPED=1
+    dmt_herdr_env_fix >/dev/null 2>&1 || true
+  fi
   if [ -n "${DMT_HERDR_SOCKET_PATH:-}" ]; then
     HERDR_SOCKET_PATH="$DMT_HERDR_SOCKET_PATH" HERDR_ENV=1 herdr "$@" 2>/dev/null
   else
@@ -81,6 +88,56 @@ dmt_herdr_env_fix() {
     fi
   fi
   pwd_real="$(pwd -P 2>/dev/null || pwd)"
+  # 二级：祖先进程环境（2026-11-06 实测：codex 进程自身 environ 是正确的 w9/bcr-nh，
+  # 只有它复用的常驻 shell 带旧值）⇒ 向上找第一个带可用 HERDR_SOCKET_PATH 的祖先，
+  # 校验 socket 存在且该 session 的 pane 列表包含它的 HERDR_PANE_ID（或非空）。
+  local ap="$PPID" ai=0 avals asock apane ajson aws
+  while [ "$ai" -lt 6 ] && [ -n "$ap" ] && [ "$ap" -gt 1 ]; do
+    if [ -r "/proc/$ap/environ" ]; then
+      avals="$(tr '\0' '\n' < "/proc/$ap/environ" 2>/dev/null || true)"
+      asock="$(printf '%s\n' "$avals" | sed -n 's/^HERDR_SOCKET_PATH=//p' | head -1)"
+      apane="$(printf '%s\n' "$avals" | sed -n 's/^HERDR_PANE_ID=//p' | head -1)"
+      if [ -n "$asock" ] && [ -S "$asock" ]; then
+        ajson="$(HERDR_SOCKET_PATH="$asock" HERDR_ENV=1 herdr pane list 2>/dev/null || true)"
+        if [ -n "$apane" ]; then
+          printf '%s' "$ajson" | jq -e --arg p "$apane" '[.result.panes[]? | select(.pane_id==$p)] | length > 0' >/dev/null 2>&1 || { ap="$(ps -o ppid= -p "$ap" 2>/dev/null | tr -d ' ')"; ai=$((ai + 1)); continue; }
+        else
+          printf '%s' "$ajson" | jq -e '(.result.panes // []) | length > 0' >/dev/null 2>&1 || { ap="$(ps -o ppid= -p "$ap" 2>/dev/null | tr -d ' ')"; ai=$((ai + 1)); continue; }
+        fi
+        aws="$(printf '%s' "$ajson" | jq -r --arg p "$apane" '[.result.panes[]? | select(.pane_id==$p) | .workspace_id] | unique | if length==1 then .[0] else empty end' 2>/dev/null || true)"
+        export DMT_HERDR_SOCKET_PATH="$asock"
+        export HERDR_SOCKET_PATH="$asock"
+        export HERDR_SESSION="$(basename "$(dirname "$asock")")"
+        [ -n "$aws" ] && export HERDR_WORKSPACE_ID="$aws"
+        [ -n "$apane" ] && export HERDR_PANE_ID="$apane"
+        return 0
+      fi
+    fi
+    ap="$(ps -o ppid= -p "$ap" 2>/dev/null | tr -d ' ')"
+    ai=$((ai + 1))
+  done
+
+  # 三级：无目标 label 时（脚本级自愈）：按「pid 的 cwd」定位 session + workspace，
+  # 命中必须唯一（多命中一律不猜）。比「恰好一个 session」精确：本机常有 10 个 session。
+  if [ -z "$want" ]; then
+    local cand="" cws="" n_ok=0 json hit
+    for sock in "$HOME"/.config/herdr/sessions/*/herdr.sock; do
+      [ -S "$sock" ] || continue
+      sess="$(basename "$(dirname "$sock")")"
+      json="$(HERDR_SESSION="$sess" HERDR_SOCKET_PATH="$sock" HERDR_ENV=1 herdr pane list 2>/dev/null || true)"
+      hit="$(printf '%s' "$json" | jq -r --arg c "$pwd_real" '[.result.panes[]? | select(((.cwd // "")|sub("/$";""))==$c)] | length' 2>/dev/null || echo 0)"
+      [ "${hit:-0}" -gt 0 ] || continue
+      n_ok=$((n_ok + 1))
+      cand="$sock"
+      cws="$(printf '%s' "$json" | jq -r --arg c "$pwd_real" '[.result.panes[]? | select(((.cwd // "")|sub("/$";""))==$c) | .workspace_id] | unique | if length==1 then .[0] else empty end' 2>/dev/null || true)"
+    done
+    [ "$n_ok" = "1" ] || return 1
+    export DMT_HERDR_SOCKET_PATH="$cand"
+    export HERDR_SOCKET_PATH="$cand"
+    export HERDR_SESSION="$(basename "$(dirname "$cand")")"
+    [ -n "$cws" ] && export HERDR_WORKSPACE_ID="$cws"
+    return 0
+  fi
   for sock in "$HOME"/.config/herdr/sessions/*/herdr.sock; do
     [ -S "$sock" ] || continue
     sess="$(basename "$(dirname "$sock")")"

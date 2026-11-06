@@ -26,7 +26,6 @@ harnesses:
     slash_prefix: "/"
     # --subagent-permission-mode bypassPermissions：否则 teammate/子代理可能回 default 档，逐条撞审批
     start_cmd: "bash '$DMT_SCRIPTS_DIR/auto-review-model.sh' --quiet; CODEBUDDY_AUTO_REVIEW_TIMEOUT_MS=300000 codebuddy --permission-mode auto --subagent-permission-mode bypassPermissions"
-    start_needs_trust: false
     max_subagents_conc: 8
     max_subagents_env: CODEBUDDY_CODE_MAX_CONCURRENT_SUBAGENTS
     max_subagents_config: null
@@ -40,7 +39,6 @@ harnesses:
       dir_user: .claude/skills
     slash_prefix: "/"
     start_cmd: "claude --permission-mode auto"
-    start_needs_trust: false
     max_subagents_conc: 10
     max_subagents_env: CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS
     max_subagents_config: null
@@ -57,7 +55,6 @@ harnesses:
     # danger-full-access 是 dmt 的硬需求：默认 workspace-write 沙箱会拒连 herdr unix socket
     # ⇒ 门铃 / 身份自证 / file-claim 全废（2026-11-06 实测，见 harness/codex.md §6.1）
     start_cmd: "codex -a never --sandbox danger-full-access"
-    start_needs_trust: true
     max_subagents_conc: 8
     max_subagents_env: null
     max_subagents_config: "agents.max_concurrent_threads_per_session"
@@ -72,7 +69,6 @@ harnesses:
       dir_project_extra: .opencode/skills
     slash_prefix: "/"
     start_cmd: "opencode --auto"
-    start_needs_trust: false
     # 上游（opencode 2.2.5）未提供并发入口 ⇒ 显式声明为「不设」，派发前按任务规模自判
     max_subagents_conc: null
     max_subagents_env: null
@@ -85,10 +81,11 @@ harnesses:
     skills:
       dir_project: .agents/skills
       dir_user: .pi/agent/skills
-      dir_project_extra: .pi/skills
+      # 2026-11-06 实测 pi 实现（collectAncestorAgentsSkillDirs）：项目级只沿祖先链扫
+      # `.agents/skills`，**不扫** `.pi/skills` ⇒ 该项目不再铺（铺了也不生效）。
+      dir_project_extra: null
     slash_prefix: "/skill:"
     start_cmd: "pi --approve"
-    start_needs_trust: true
     # pi-subagents 默认：workflow maxTasks=8 / concurrency=4（2026-11-06 实测文档）
     max_subagents_conc: 8
     max_subagents_env: null

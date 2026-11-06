@@ -64,6 +64,8 @@ dmt/                                    # one folder per role
 ├── dmt-reviewer/SKILL.md                    # review engineer (reviewer{n} subagent skill, no pane)
 ├── dmt-dm/SKILL.md                     # development manager
 ├── dmt-am/SKILL.md                     # analysis manager
+├── scripts/                           # repo-level helper scripts (not installed):
+│   └── sync-mattpocock-codex-compat.sh # installs Codex-compatible copies of to-spec / to-tickets / implement
 └── logs/                              # incident post-mortems (e.g. 2026-10-27-serial-queue-incident.md)
 ```
 
@@ -136,6 +138,6 @@ cp .env.example .env && ${EDITOR:-vi} .env   # fill in the actual addresses for 
 
 - This repo is the **single maintenance location** for dmt. Skill locations (`<role>/` under `.agents/skills/`, `.claude/skills/`, `.codebuddy/skills/`, laid down by `install-skills.sh` according to `--harness`) and **`docs/team.md` / `docs/OPS.md` / `docs/ops/` are all installed as symlinks** (default `link` mode) ⇒ they follow updates of this repo and take effect immediately after a change, **with no need to re-run the install**. Only projects installed with `--copy` do not follow this repo.
 - Contract references inside the skills do not rely on relative paths (they are written as "`dmt-director/team.md` (this repo; `docs/team.md` once installed into a project)"), so symlink installs do not break the links.
-- **Repository relationship (updated 2026-11-06)**: this repo (`dmt-en`) is the **English mirror**, synchronized to upstream `dmt` **`5.18.8`** (seven skills + the `harness/` layer + machine check). The Chinese repo `dmt` is authoritative; when the two differ, `dmt` wins and this mirror is re-synchronized from it — the two are no longer maintained independently.
+- **Repository relationship (updated 2026-11-06)**: this repo (`dmt-en`) is the **English mirror**, synchronized to upstream `dmt` **`5.18.9`** (seven skills + the `harness/` layer + machine check). The Chinese repo `dmt` is authoritative; when the two differ, `dmt` wins and this mirror is re-synchronized from it.
 - Changes to script interfaces (arguments, output, exit codes) count as contract changes and must be synced to the seven skills and check 4m.
 - Dependency on harness-side skills: `herdr` (pane control and label identification), `cbc-herdr` (CodeBuddy status reporting only), `pi-subagents` (pi harness only; Codex uses native `spawn_agent`/`wait_agent`, cbc uses Agent/team subagents), plus mattpocock's [`/to-spec`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-spec/SKILL.md), [`/to-tickets`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/to-tickets/SKILL.md), [`/code-review`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/code-review/SKILL.md), [`/tdd`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/tdd/SKILL.md), [`/research`](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/research/SKILL.md), and so on (see `team.md` §1.4 for installation and fallback).

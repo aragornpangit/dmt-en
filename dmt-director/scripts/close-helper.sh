@@ -12,7 +12,7 @@ done
 case "$ROLE" in director|devm|anam) ;; *) echo "role must be director|devm|anam" >&2; exit 2 ;; esac
 LABEL="${ROLE}-helper"
 
-if ! list="$(HERDR_ENV=1 herdr pane list --workspace "${HERDR_WORKSPACE_ID:-}" 2>/dev/null)"; then
+if ! list="$(dmt_herdr pane list --workspace "${HERDR_WORKSPACE_ID:-}" 2>/dev/null)"; then
   echo "ERROR: herdr pane list 失败，无法确认 $LABEL 状态（不按已关闭处理）" >&2
   exit 4
 fi
@@ -42,6 +42,6 @@ fi
 
 echo "人工确认清单（关闭 $LABEL 前逐项确认）：① 回报已入账 ② worktree 已 git worktree remove（由关闭者确认）③ 未读自动判（本脚本按 ${LABEL}2${ROLE} 方向查过）"
 if [ "$DRY" = 1 ]; then echo "+ herdr pane close $pane"; else
-  HERDR_ENV=1 herdr pane close "$pane"
+  dmt_herdr pane close "$pane"
   echo "closed $LABEL ($pane)（helper tab 保留复用）"
 fi

@@ -51,7 +51,7 @@ PROMPT="$(dmt_skill_prompt "$HARNESS" "$SKILL_NAME" "$TASK_PROMPT" "$ROLE")"
 
 h() { if [ "$DRY" = 1 ]; then echo "+ $*" >&2; else "$@"; fi; }
 # 查询类：失败给空（dry-run / 无 herdr 环境也能走完分支打印）
-q() { HERDR_ENV=1 herdr "$@" 2>/dev/null || true; }
+q() { dmt_herdr "$@" || true; }
 list_panes() { q pane list --workspace "${HERDR_WORKSPACE_ID:-}"; }
 pane_by_label() { dmt_pane_by_label "$1"; }
 pane_status() { dmt_pane_status "$1"; }
@@ -89,18 +89,18 @@ start_pane() {
     # Codex 的技能与任务必须合成首轮 prompt，避免角色先自行开工或进入交互界面。
     h env HERDR_ENV=1 DMT_PANE_ROLE="$LABEL" herdr pane send-text "$pane" \
       "DMT_PANE_ROLE=$LABEL $HARNESS_CMD '$PROMPT'"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-keys "$pane" enter
     wait_ready "$pane" || true
   else
     h env HERDR_ENV=1 DMT_PANE_ROLE="$LABEL" herdr pane send-text "$pane" "$HARNESS_CMD"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-keys "$pane" enter
     wait_ready "$pane" || true
-    h env HERDR_ENV=1 herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$SKILL_NAME")"
-    h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+    h dmt_herdr pane send-text "$pane" "$(dmt_skill_cmd "$HARNESS" "$SKILL_NAME")"
+    h dmt_herdr pane send-keys "$pane" enter
     if [ -n "$TASK" ]; then
       # 任务一次性下发：此后不再向该 pane 发任何输入框内容
-      h env HERDR_ENV=1 herdr pane send-text "$pane" "$TASK"
-      h env HERDR_ENV=1 herdr pane send-keys "$pane" enter
+      h dmt_herdr pane send-text "$pane" "$TASK"
+      h dmt_herdr pane send-keys "$pane" enter
     fi
   fi
   verify_auto_mode "$pane"
@@ -122,7 +122,7 @@ if [ -z "$TAB" ]; then
     echo "+ herdr tab create --workspace ${HERDR_WORKSPACE_ID:-} --cwd $PWD --label helper" >&2
     TAB="<helper-tab>"; ROOT_PANE="<helper-tab-root>"
   else
-    out="$(HERDR_ENV=1 herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label helper)"
+    out="$(dmt_herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label helper)"
     TAB="$(printf '%s' "$out" | jq -r '.result.tab.tab_id // empty')"
     ROOT_PANE="$(printf '%s' "$out" | jq -r '.result.root_pane.pane_id // empty')"
   fi
@@ -138,7 +138,7 @@ fi
 ANCHOR_LABEL="helper-anchor"
 base="${ROOT_PANE:-}"
 if [ -n "$base" ]; then
-  h env HERDR_ENV=1 herdr pane rename "$base" "$ANCHOR_LABEL"
+  h dmt_herdr pane rename "$base" "$ANCHOR_LABEL"
   echo "labeled anchor pane $base as $ANCHOR_LABEL"
 else
   base="$(pane_by_label "$ANCHOR_LABEL")"
@@ -163,8 +163,8 @@ if [ "$DRY" = 1 ]; then
   h herdr pane rename "<new-pane>" "$LABEL"
   pane="<new-pane>"
 else
-  pane="$(HERDR_ENV=1 herdr pane split "$base" --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id')"
-  HERDR_ENV=1 herdr pane rename "$pane" "$LABEL"
+  pane="$(dmt_herdr pane split "$base" --direction right --cwd "$PWD" --no-focus | jq -r '.result.pane.pane_id')"
+  dmt_herdr pane rename "$pane" "$LABEL"
 fi
 
 # 5) 代启动 harness 并装载同角色技能分流

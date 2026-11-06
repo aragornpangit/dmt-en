@@ -295,6 +295,29 @@ while IFS=$'\t' read -r st who what extra; do
 done <<< "$A6C_OUT"
 [ "$a6c_fail" = 0 ] || fail=1
 
+echo "== A6d) 仓级脚本登记 =="
+# 契约 repo_scripts 里登记的脚本必须真实存在且可执行（防「登记了但文件被删」/「文件在但没登记」）。
+while IFS= read -r rp; do
+  [ -n "$rp" ] || continue
+  if [ -f "$REPO/$rp" ]; then
+    [ -x "$REPO/$rp" ] && ok "仓级脚本 $rp" || bad "仓级脚本 $rp 不可执行"
+  else
+    bad "仓级脚本缺失 $rp"
+  fi
+done < <(python3 - "$CONTRACT_YAML" <<'PYCS'
+import sys, yaml
+c = yaml.safe_load(open(sys.argv[1], encoding="utf-8"))
+for p in (c.get("repo_scripts") or []):
+    print(p)
+PYCS
+)
+# 反向：仓根 scripts/ 下的每个文件都必须登记
+for f in "$REPO"/scripts/*; do
+  [ -e "$f" ] || continue
+  rel="scripts/$(basename "$f")"
+  grep -q "$rel" "$CONTRACT_YAML" || bad "仓级脚本未登记：$rel"
+done
+
 echo "== A7) 文档相对链接可达 =="
 REPO_REAL="$(readlink -f "$REPO")"
 SKILLS_REAL="$(readlink -f "$SKILLS_DIR")"

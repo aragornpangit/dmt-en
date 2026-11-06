@@ -30,6 +30,10 @@ done
 [ -n "$TARGET" ] || { echo "usage: install-skills.sh <project-root> [--copy] [--harness all|claude,codebuddy,codex,opencode,pi]" >&2; exit 2; }
 
 REPO="$(cd -P "$(dirname "$0")/../.." && pwd -P)"
+# 目标目录不存在时自动创建（2026-11-06：此前直接 `cd` 失败，报错落在 set -e 的 line 33，提示无用）
+if [ ! -d "$TARGET" ]; then
+  mkdir -p "$TARGET" || { echo "install-skills: 无法创建目标目录 $TARGET" >&2; exit 2; }
+fi
 TARGET="$(cd -P "$TARGET" && pwd -P)"
 # 防自引用：target 落在技能仓内时拒绝（否则会把软链建到自身，造出 <repo>/dmt-director/dmt-director 之类残留）
 case "$TARGET" in
