@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Recipient claim: move a message from inbox/<role>/ into inbox/<role>/.doing/ (claim before reading)
-# Usage: bash msg-take.sh <role> <file>        file may be a name or a path; basename is used
+# 收件方认领：把消息从 inbox/<role>/ 移到 inbox/<role>/.doing/（认领在前、读入在后）
+# 用法：bash msg-take.sh <role> <file>        file 可为文件名或路径，取 basename
 set -eu
 ROLE="${1:?usage: msg-take.sh <role> <file>}"
 FILE="${2:?missing file}"
-# Role allowlist: director|devm|anam; anything else exits 2 (a helper has no inbox of its own, so it is never a recipient role)
+# 角色白名单：director|devm|anam，非法 exit 2（helper 无自己的 inbox，不作收件角色）
 case "$ROLE" in
   director|devm|anam) ;;
   *) echo "bad role: $ROLE (want director|devm|anam)" >&2; exit 2 ;;
 esac
-# Locate the inbox at the main worktree root (same rule as dispatch-ledger)
-DIR="$(cd "$(dirname "$0")" && pwd)"; . "$DIR/lib-dmt.sh"
+# 收件箱定位到主工作树根
+DIR="$(cd -P "$(dirname "$0")" && pwd -P)"; . "$DIR/lib-dmt.sh"
 ROOT="$(dmt_root)"
 BOX="$ROOT/inbox/$ROLE"
 NAME="$(basename "$FILE")"

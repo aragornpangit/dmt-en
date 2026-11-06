@@ -1,0 +1,107 @@
+# dmt harness 兼容矩阵：单一来源（spec 层）。
+#
+# 这是「每个 harness 的技能发现目录 / 技能调用行 / 启动命令 / 并发上限」的唯一权威，
+# 由 dmt-director/scripts/harness-matrix.sh 读取，供 lib-dmt.sh、setup-team.sh、
+# spawn-helper.sh、install-skills.sh 与机检共用。改这里即改全部落点，不要在脚本或
+# 文档里再写死某个 harness 的前缀 / 目录 / 启动参数。
+#
+# 字段说明：
+#   skills.dir_project       项目级技能发现目录（相对项目根）
+#   skills.dir_user          用户级技能发现目录（相对 $HOME）
+#   skills.dir_project_extra 项目级额外目录（opencode 兼容 .claude/skills）
+#   slash_prefix             技能斜杠命令前缀；pi 为 "/skill:"，其余为 "/"
+#   start_cmd                代启动命令（免逐条审批档位）
+#   start_needs_trust        首次进入项目目录需人工确认 trust（一次性）
+#   max_subagents_conc       静态默认并发上限（null = 需运行时探测/不设）
+#   max_subagents_env        并发上限对应的环境变量（若有）
+#   max_subagents_config     并发上限的运行时配置（codex 读 [agents] 的会话上限）
+#   skill_prefix             技能限定名前缀（Codex 插件技能使用该前缀）
+#   first_prompt             启动命令是否接受首轮 prompt（true 时技能/任务随启动一次下发）
+#   doorbell                 门铃通道（herdr agent 的检测名）
+harnesses:
+  codebuddy:
+    skills:
+      dir_project: .codebuddy/skills
+      dir_user: .codebuddy/skills
+    slash_prefix: "/"
+    # --subagent-permission-mode bypassPermissions：否则 teammate/子代理可能回 default 档，逐条撞审批
+    start_cmd: "bash '$DMT_SCRIPTS_DIR/auto-review-model.sh' --quiet; CODEBUDDY_AUTO_REVIEW_TIMEOUT_MS=300000 codebuddy --permission-mode auto --subagent-permission-mode bypassPermissions"
+    start_needs_trust: false
+    max_subagents_conc: 8
+    max_subagents_env: CODEBUDDY_CODE_MAX_CONCURRENT_SUBAGENTS
+    max_subagents_config: null
+    skill_prefix: null
+    first_prompt: false
+    tree_mode: full
+    doorbell: codebuddy
+  claude:
+    skills:
+      dir_project: .claude/skills
+      dir_user: .claude/skills
+    slash_prefix: "/"
+    start_cmd: "claude --permission-mode auto"
+    start_needs_trust: false
+    max_subagents_conc: 10
+    max_subagents_env: CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS
+    max_subagents_config: null
+    skill_prefix: null
+    first_prompt: false
+    tree_mode: full
+    doorbell: claude
+  codex:
+    skills:
+      dir_project: .agents/skills
+      dir_user: .agents/skills
+      dir_project_extra: null
+    slash_prefix: "/"
+    # danger-full-access 是 dmt 的硬需求：默认 workspace-write 沙箱会拒连 herdr unix socket
+    # ⇒ 门铃 / 身份自证 / file-claim 全废（2026-11-06 实测，见 harness/codex.md §6.1）
+    start_cmd: "codex -a never --sandbox danger-full-access"
+    start_needs_trust: true
+    max_subagents_conc: 8
+    max_subagents_env: null
+    max_subagents_config: "agents.max_concurrent_threads_per_session"
+    skill_prefix: "mattpocock-skills:"
+    first_prompt: true
+    tree_mode: herdr
+    doorbell: codex
+  opencode:
+    skills:
+      dir_project: .agents/skills
+      dir_user: .agents/skills
+      dir_project_extra: .opencode/skills
+    slash_prefix: "/"
+    start_cmd: "opencode --auto"
+    start_needs_trust: false
+    # 上游（opencode 2.2.5）未提供并发入口 ⇒ 显式声明为「不设」，派发前按任务规模自判
+    max_subagents_conc: null
+    max_subagents_env: null
+    max_subagents_config: null
+    skill_prefix: null
+    first_prompt: false
+    tree_mode: full
+    doorbell: opencode
+  pi:
+    skills:
+      dir_project: .agents/skills
+      dir_user: .pi/agent/skills
+      dir_project_extra: .pi/skills
+    slash_prefix: "/skill:"
+    start_cmd: "pi --approve"
+    start_needs_trust: true
+    # pi-subagents 默认：workflow maxTasks=8 / concurrency=4（2026-11-06 实测文档）
+    max_subagents_conc: 8
+    max_subagents_env: null
+    max_subagents_config: "workflow maxTasks=8 / concurrency=4（pi-subagents 默认，可按调用覆盖）"
+    skill_prefix: null
+    first_prompt: false
+    tree_mode: full
+    doorbell: pi
+
+# install-skills.sh --harness all 时铺设的落点（去重后的项目级目录）。
+# 覆盖五个 harness：.agents/skills（codex/opencode/pi）+ .claude/skills（claude/opencode）+ .codebuddy/skills（codebuddy）。
+# codex 同时发现 .codex/skills，但安装只用 .agents/skills，避免同一技能登记两次。
+install_all_dirs:
+  - .agents/skills
+  - .claude/skills
+  - .codebuddy/skills

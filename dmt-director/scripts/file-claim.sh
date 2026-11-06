@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# dmt file claim registry (check before editing to avoid concurrent writes to the same file)
-# Model borrowed from Orca: first check whether an active agent is in the same worktree, then register the claim on this file.
-# Usage:
+# dmt 文件占用登记（编辑前检查，避免并发写同一文件）
+# 模型参考 Orca：先看有没有活跃 agent 在同一 worktree，再登记本文件的占用。
+# 用法：
 #   bash file-claim.sh check   <path> [owner]
 #   bash file-claim.sh claim   <path> <owner>
 #   bash file-claim.sh release <path> <owner>
 #   bash file-claim.sh list
-# Return codes: 0 writable/success; 3 held by someone else; 2 usage error
-# Env vars: DMT_LOCKS_DIR (default <project-root>/locks), DMT_CLAIM_TTL (seconds, default 1800)
+# 返回码：0 可写/成功；3 被他人占用；2 用法错误
+# 环境变量：DMT_LOCKS_DIR（默认 <项目根>/locks）、DMT_CLAIM_TTL（秒，默认 1800）
 set -u
 
-# The ledger always lands at the *main worktree* root: running inside a worktree still writes
-# <main>/locks/, otherwise the director's scan of locks/dispatch-*.tsv at the project root misses it
-# and not every branch's .gitignore lists locks/.
-DIR="$(cd "$(dirname "$0")" && pwd)"
+# 锁登记固定落在「主工作树」根：worktree 里跑也写回 <main>/locks/，
+# 否则 director 在项目根巡检 locks/ 看不到，且各分支 .gitignore 未必有 locks/。
+DIR="$(cd -P "$(dirname "$0")" && pwd -P)"
 . "$DIR/lib-dmt.sh"
 ROOT="$(dmt_root)"
 LOCKS="${DMT_LOCKS_DIR:-$ROOT/locks}"
@@ -30,7 +29,7 @@ if [ "$cmd" != "list" ]; then
   [ -n "$cmd" ] && [ -n "$target" ] || usage
 fi
 
-# Normalize to a path relative to the project root (non-existent files are fine; list needs no target)
+# 规范化成相对项目根的路径（不存在的文件也能算；list 不需要 target）
 rel=""; lock=""
 if [ -n "$target" ]; then
   abs="$(realpath -m "$target")"
@@ -53,14 +52,14 @@ case "$cmd" in
     fi
     o="$(read_owner "$lock")"
     if expired "$lock"; then
-      echo "STALE $rel (previous owner $o, over ${TTL}s) -- may be preempted; state the preemption in your report"
+      echo "STALE $rel（原持有者 $o，已超 ${TTL}s）——可抢占，抢占时须在回报里写明"
       exit 0
     fi
     if [ -n "$owner" ] && [ "$o" = "$owner" ]; then
-      echo "MINE  $rel ($o)"
+      echo "MINE  $rel（$o）"
       exit 0
     fi
-    echo "BUSY  $rel held by $o ($(( $(now) - $(read_ts "$lock") ))s)"
+    echo "BUSY  $rel 正被 $o 占用（$(( $(now) - $(read_ts "$lock") ))s）"
     exit 3
     ;;
 
@@ -85,23 +84,23 @@ case "$cmd" in
         printf '%s' "$rel"   > "$lock/path"
         printf '%s' "$owner" > "$lock/owner"
         now                  > "$lock/ts"
-        echo "CLAIMED $rel by $owner (took over expired lock, previous owner $o)"
+        echo "CLAIMED $rel by $owner（接管过期锁，原持有者 $o）"
         exit 0
       fi
     fi
-    echo "BUSY  $rel held by $o ($(( $(now) - $(read_ts "$lock") ))s)"
+    echo "BUSY  $rel 正被 $o 占用（$(( $(now) - $(read_ts "$lock") ))s）"
     exit 3
     ;;
 
   release)
     [ -n "$owner" ] || usage
     if [ ! -d "$lock" ]; then
-      echo "FREE  $rel (no claim)"
+      echo "FREE  $rel（无占用）"
       exit 0
     fi
     o="$(read_owner "$lock")"
     if [ "$o" != "$owner" ]; then
-      echo "BUSY  $rel held by $o; $owner may not release it"
+      echo "BUSY  $rel 由 $o 持有，$owner 不得释放"
       exit 3
     fi
     rm -rf "$lock"
@@ -120,7 +119,7 @@ case "$cmd" in
       st="active"; expired "$d" && st="stale"
       echo "$st  $p  owner=$o  age=${age}s"
     done
-    [ "$found" -eq 1 ] || echo "(no claims)"
+    [ "$found" -eq 1 ] || echo "（无占用）"
     exit 0
     ;;
 

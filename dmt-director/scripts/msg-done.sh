@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Recipient close-out: delete the message from inbox/<role>/.doing/ once the work is done
-# Usage: bash msg-done.sh <role> <file>
+# 收件方收口：办完后从 inbox/<role>/.doing/ 删除该消息
+# 用法：bash msg-done.sh <role> <file>
 set -eu
 ROLE="${1:?usage: msg-done.sh <role> <file>}"
 FILE="${2:?missing file}"
-# Role allowlist: director|devm|anam; anything else exits 2 (a helper has no inbox of its own, so it is never a recipient role)
+# 角色白名单：director|devm|anam，非法 exit 2（helper 无自己的 inbox，不作收件角色）
 case "$ROLE" in
   director|devm|anam) ;;
   *) echo "bad role: $ROLE (want director|devm|anam)" >&2; exit 2 ;;
 esac
-# Locate the inbox at the main worktree root (same rule as dispatch-ledger)
-DIR="$(cd "$(dirname "$0")" && pwd)"; . "$DIR/lib-dmt.sh"
+# 收件箱定位到主工作树根
+DIR="$(cd -P "$(dirname "$0")" && pwd -P)"; . "$DIR/lib-dmt.sh"
 ROOT="$(dmt_root)"
 BOX="$ROOT/inbox/$ROLE"
 NAME="$(basename "$FILE")"

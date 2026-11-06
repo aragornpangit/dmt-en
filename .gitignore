@@ -1,0 +1,12 @@
+# 运行时通道（不入库）
+inbox/*/
+locks/
+.codebuddy/
+
+# python 探针产物（子代理取证时会留下）
+__pycache__/
+*.pyc
+
+# 内网端点配置：.env 含环境私有信息，只提交 .env.example 模板
+.env
+.env.local

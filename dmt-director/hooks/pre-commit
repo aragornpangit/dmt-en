@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# dmt pre-commit 守卫（工程卫生 §6）：拦截「误提交内网地址 / 凭证 / .env」。
+#
+# 为什么需要：内网拓扑（10.x / 192.168.x / 172.16-31.x）与密钥一旦入库，即使后续
+# 删除也会留在历史里（本轮已把地址抽到 .env，但那是「一次性动作」；本 hook 把它
+# 变成「防回退门禁」）。
+#
+# 安装：bash dmt-director/scripts/install-git-hooks.sh   （设 core.hooksPath=dmt-director/hooks）
+# 绕过（谨慎）：git commit --no-verify
+set -u
+
+# 只检查本次暂存区新增/修改的行（--cached）
+diff="$(git diff --cached --no-color --unified=0 2>/dev/null || true)"
+[ -n "$diff" ] || exit 0
+added="$(printf '%s\n' "$diff" | grep -E '^\+' | grep -vE '^\+\+\+ ' || true)"
+[ -n "$added" ] || exit 0
+
+fail=0
+hit() { echo "pre-commit 拦截：$1" >&2; echo "    $2" >&2; fail=1; }
+
+# 1) .env 一律不得入库（.env.example 允许）
+staged="$(git diff --cached --name-only 2>/dev/null || true)"
+if printf '%s\n' "$staged" | grep -qE '(^|/)\.env$'; then
+  hit "试图提交 .env（环境私有信息，应只提交 .env.example）" "$(printf '%s\n' "$staged" | grep -E '(^|/)\.env$')"
+fi
+
+# 2) 内网地址：10.x / 192.168.x / 172.16-31.x（含端口）
+if printf '%s\n' "$added" | grep -nE '10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}' >/dev/null; then
+  hit "新增行含内网地址（改用 .env 变量引用）" "$(printf '%s\n' "$added" | grep -nE '10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.' | head -3)"
+fi
+
+# 3) 常见密钥形态
+if printf '%s\n' "$added" | grep -nE 'AKIA[0-9A-Z]{16}|glpat-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|xox[baprs]-[A-Za-z0-9-]{10,}' >/dev/null; then
+  hit "新增行疑似凭证/私钥" "$(printf '%s\n' "$added" | grep -nE 'AKIA[0-9A-Z]{16}|glpat-|ghp_|sk-|PRIVATE KEY|xox[baprs]-' | sed -E 's/(glpat-|ghp_|sk-|AKIA)[A-Za-z0-9_-]+/\1***/g' | head -3)"
+fi
+
+if [ "$fail" != 0 ]; then
+  echo "" >&2
+  echo "如确属误报，用 git commit --no-verify 绕过（并确认风险）。" >&2
+  exit 1
+fi
+exit 0

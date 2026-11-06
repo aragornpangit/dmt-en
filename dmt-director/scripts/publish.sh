@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# For devm (merge and push belong to devm alone): commit explicit paths and push to GitLab + GitHub (push at least once per completed ticket / at least hourly)
-# Usage: bash publish.sh -m <message> [--auto] [--no-push] [--remotes "gitlab origin"] -- <paths...>
-#   --auto enumerates changed paths from git status (still explicit paths, no git add -A)
+# devm 用（merge 与 push 归 devm）：显式路径提交并推送到 GitLab + GitHub（每 ticket 一推 / 每小时巡检）
+# 用法：bash publish.sh -m <message> [--auto] [--no-push] [--remotes "gitlab origin"] -- <paths...>
+#   --auto 由 git status 枚举改动路径（仍是显式路径，不用 git add -A）
 set -eu
+# 载入 .env（DMT_GITLAB_SERVER / DMT_GITLAB_PORT / DMT_GITLAB_REPO；已导出的环境变量优先）
+DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+. "$DIR/lib-dmt.sh"
+dmt_load_env
 MSG=""; AUTO=0; PUSH=1; REMOTES="gitlab origin"
 PATHS=()
 while [ $# -gt 0 ]; do
@@ -18,7 +22,7 @@ done
 [ -n "$MSG" ] || { echo "missing -m <message>" >&2; exit 2; }
 
 if [ "$AUTO" = 1 ]; then
-  # -z + core.quotePath=false: spaces / Unicode / renames are not lost; deletions are collected too (git add -A records deletions)
+  # -z + core.quotePath=false：空格 / 中文 / 重命名都不丢；删除项也收进来（git add -A 能记录删除）
   PATHS=()
   declare -A seen=()
   add_path() {
@@ -35,17 +39,16 @@ if [ "$AUTO" = 1 ]; then
 fi
 [ "${#PATHS[@]}" -gt 0 ] || { echo "nothing to commit"; exit 0; }
 
-# Explicit path list: add the given paths first (-A is what records deleted files)
+# 显式列路径：先 add 指定路径（-A 才能记录已删除文件）
 git add -A -- "${PATHS[@]}"
 if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
 
-# A commit must not carry a pathspec: a deleted path no longer has an index entry, so `git commit -- <path>`
-# reports "pathspec ... did not match any files" (a single rename can wedge --auto forever).
-# Instead, assert that only the paths listed this time may appear in the index, then commit as a whole:
-# this keeps the explicit-path semantics and still records deletions.
+# 提交不能带 pathspec：已删除路径在 index 里已无条目，`git commit -- <path>` 会报
+# "pathspec ... did not match any files"（一次重命名就能让 --auto 永久卡死）。
+# 改为「索引里只许出现本次列出的路径」再整体提交，既保住显式路径语义，又能记录删除。
 contains() { local x="$1" p; for p in "${PATHS[@]}"; do [ "$p" = "$x" ] && return 0; done; return 1; }
 while IFS= read -r -d '' p; do
-  contains "$p" || { echo "ERROR: the index still has changes not listed in this commit: $p (commit or stash them separately first)" >&2; exit 2; }
+  contains "$p" || { echo "ERROR: 索引里还有未列入本次提交的改动：$p（先单独提交或 stash）" >&2; exit 2; }
 done < <(git -c core.quotePath=false diff --cached --name-only -z)
 
 git commit -m "$MSG"

@@ -1,73 +1,72 @@
 #!/usr/bin/env bash
-# For director: bring up the dmt team in one shot (idempotent, stages can be skipped)
-# Usage: bash launch.sh [project-root] [options] (project root defaults to the current directory)
-#   --copy          install skills by copying instead of symlinking (default: symlink)
-#   --user-hooks    install hooks at user level ~/.codebuddy (default: project level <root>/.codebuddy)
-#   --skip-skills   skip skill installation
-#   --skip-hooks    skip hook installation
-#   --skip-team     skip creating the team panes (also skipped automatically without a herdr environment)
-#   --dry-run       print the actions that would run without executing them
-# Stages (fixed order): (1) install-skills -> (2) init-project -> (3) install-hooks -> (4) setup-team
-# Run this from the target project root: bash dmt-director/scripts/launch.sh [project-root] (no argument = current directory).
+# director 用：一键拉起 dmt 团队（幂等，可分阶段跳过）
+# 用法：bash launch.sh [项目根目录] [选项]（项目根默认当前目录）
+#   --copy          技能改为复制安装（默认软链）
+#   --skip-skills   跳过技能安装
+#   --skip-team     跳过建团队 pane（无 herdr 环境时也会自动跳过）
+#   --skip-hooks    跳过 git hooks 安装（默认安装 core.hooksPath 守卫）
+#   --dry-run       只打印将执行的动作，不实际执行
+# 阶段（顺序固定）：① install-skills → ② init-project → ③ install-git-hooks → ④ setup-team
+# （hooks / 派发账本机制已于 2026-11-02 随「取消 max-subagents」裁定整体删除，不再安装；2026-11-04 裁定改为「无依赖任务一律开满 subagents 并行」，但饱和机制脚本不恢复）
+# 请在目标项目根执行：bash dmt-director/scripts/launch.sh [项目根目录]（省略参数＝当前目录）。
 set -eu
 ROOT="."
-COPY=0; USERHOOKS=0; DOSKILLS=1; DOHOOKS=1; DOTEAM=1; DRY=0
+COPY=0; DOSKILLS=1; DOTEAM=1; DOHOOKS=1; DRY=0
 ARGS=()
 for a in "$@"; do
   case "$a" in
     --copy) COPY=1 ;;
-    --user-hooks) USERHOOKS=1 ;;
     --skip-skills) DOSKILLS=0 ;;
-    --skip-hooks) DOHOOKS=0 ;;
     --skip-team) DOTEAM=0 ;;
+    --skip-hooks) DOHOOKS=0 ;;
     --dry-run) DRY=1 ;;
     -*) echo "unknown option: $a" >&2; exit 2 ;;
     *) ARGS+=("$a") ;;
   esac
 done
 if [ "${#ARGS[@]}" -gt 0 ]; then
-  ROOT="$(cd "${ARGS[0]}" && pwd)"
+  ROOT="$(cd -P "${ARGS[0]}" && pwd -P)"
 else
   ROOT="$PWD"
 fi
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# The target root must not be the skill script directory itself (otherwise docs/, inbox/, locks/ and the skills all land inside scripts/)
+SCRIPT_DIR="$(cd -P "$(dirname "$0")" && pwd -P)"
+# 目标根不能是技能脚本目录本身（否则 docs/、inbox/、locks/、技能全装进 scripts/）
 case "$ROOT" in
-  */dmt-director/scripts|*/dmt-director) echo "[launch] target root must not be the skill directory: $ROOT" >&2; exit 2 ;;
+  */dmt-director/scripts|*/dmt-director) echo "[launch] 目标根不能是技能目录：$ROOT" >&2; exit 2 ;;
 esac
 
 run() { echo "[launch] $*"; [ "$DRY" = 1 ] || "$@"; }
 
-echo "[launch] target project: $ROOT"
+echo "[launch] 目标项目：$ROOT"
 if [ "$DOSKILLS" = 1 ]; then
   if [ "$COPY" = 1 ]; then run bash "$SCRIPT_DIR/install-skills.sh" "$ROOT" --copy
   else run bash "$SCRIPT_DIR/install-skills.sh" "$ROOT"; fi
 else
-  echo "[launch] skipping skill installation"
+  echo "[launch] 跳过技能安装"
 fi
 
 run bash "$SCRIPT_DIR/init-project.sh" "$ROOT"
 
-if [ "$DOHOOKS" = 1 ]; then
-  if [ "$USERHOOKS" = 1 ]; then run bash "$SCRIPT_DIR/install-hooks.sh" --user
-  else run bash "$SCRIPT_DIR/install-hooks.sh" "$ROOT"; fi
+if [ "$DOHOOKS" = 1 ] && [ -d "$ROOT/.git" ]; then
+  run bash "$SCRIPT_DIR/install-git-hooks.sh"
+elif [ "$DOHOOKS" = 1 ]; then
+  echo "[launch] 目标不是 git 仓（无 .git），跳过 git hooks 安装"
 else
-  echo "[launch] skipping hook installation"
+  echo "[launch] 跳过 git hooks 安装"
 fi
 
 if [ "$DOTEAM" = 1 ]; then
-  # Team-creation guard: create the team only when all four herdr variables are present (if one is missing, setup-team.sh aborts at its : "$VAR" guard)
+  # 建团队守卫：四个 herdr 变量齐备才建（缺一则 setup-team.sh 会在 : "$VAR" 处直接断掉）
   missing=""
   [ -n "${HERDR_ENV:-}" ] || missing="$missing HERDR_ENV"
   [ -n "${HERDR_PANE_ID:-}" ] || missing="$missing HERDR_PANE_ID"
   [ -n "${HERDR_TAB_ID:-}" ] || missing="$missing HERDR_TAB_ID"
   [ -n "${HERDR_WORKSPACE_ID:-}" ] || missing="$missing HERDR_WORKSPACE_ID"
-  # The cwd of a created pane comes from setup-team.sh's $PWD, so we must cd into the project root
-  # first, otherwise the pane lands inside the scripts/ directory
+  # 建 pane 的 cwd 取 setup-team.sh 的 $PWD，必须先进项目根再调用，否则 pane 会落在 scripts/ 目录
   if [ -z "$missing" ]; then ( cd "$ROOT" && run bash "$SCRIPT_DIR/setup-team.sh" )
-  else echo "[launch] herdr environment incomplete (missing:$missing); skipping team creation. Rerun this script inside the director pane, or run bash $SCRIPT_DIR/setup-team.sh directly"; fi
+  else echo "[launch] herdr 环境不齐（缺:$missing），跳过建团队；在 director pane 内重跑本脚本或直接 bash $SCRIPT_DIR/setup-team.sh"; fi
 else
-  echo "[launch] skipping team creation"
+  echo "[launch] 跳过建团队"
 fi
 
-echo "[launch] done. Machine check: bash $SCRIPT_DIR/check-dmt-doc-paths.sh $ROOT"
+echo "[launch] 完成。机检：bash $SCRIPT_DIR/check-dmt.sh $ROOT ；结构化机检：bash $SCRIPT_DIR/check-dmt.sh $ROOT"
