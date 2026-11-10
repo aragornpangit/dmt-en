@@ -1,6 +1,6 @@
 # dmt Team Contract
 
-> **Version 5.18.9 · 2026-11-06** — same number as the `version:` field in the seven `SKILL.md` files; a different number means the wrong install.
+> **Version 5.18.10 · 2026-11-10** — same number as the `version:` field in the seven `SKILL.md` files; a different number means the wrong install.
 > **Scope**: every discipline in this contract (permissions / write ownership / gates / pane / inbox) **applies only to the "target project" managed by dmt** (the root initialized by `init-project.sh`); **it does not apply when maintaining the skill repositories themselves** (`dmt` / `dmt-en` and the like) — a maintainer may `commit` / `push` directly, with no director authorization and no devm pushing on their behalf.
 > **Routing**: this file defines the constants; read task details from its sections, and route operating procedures through [`OPS.md`](OPS.md). This file prevails in any conflict.
 

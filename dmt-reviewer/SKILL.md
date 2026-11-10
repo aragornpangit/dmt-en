@@ -1,6 +1,6 @@
 ---
 name: dmt-reviewer
-version: 5.18.9
+version: 5.18.10
 description: Review engineer (reviewer{n}), independently accepts the code of a single ticket. The main track belongs to devm for code review, the side track belongs to director for spot checks and high-risk re-verification; it recognizes only the ticket, SPEC, diff, evidence and test output. Trigger words: dmt, reviewer, review, acceptance, audit, code-review, spot check, re-verification.
 ---
 

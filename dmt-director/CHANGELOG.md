@@ -1,9 +1,14 @@
 # dmt team contract · changelog (English mirror)
 
-> **Version `5.18.9` · 2026-11-06** — same number as the `version:` field in the seven role `SKILL.md` files.
+> **Version `5.18.10` · 2026-11-10** — same number as the `version:` field in the seven role `SKILL.md` files.
 > This file records only the **English-mirror history**; the full, item-by-item history (87 entries, Chinese) lives in the
 > upstream [`dmt`](https://github.com/aragornpangit/dmt) repository under `dmt-director/CHANGELOG.md`, and its semantic digest in
 > `CHANGELOG-DIGEST.md`. Entries are facts as of their date and are never rewritten or renumbered.
+
+- **2026-11-10（naming rule sync · version `5.18.10`）**：
+  ① **Rule**: `dmt-director/team/04-naming.md` §2 now defines the ticket number as the two-level composite **`{spec-seq}.{NN}`** — `.` is a hierarchy separator (not a decimal point, not a version number), the first part is the owning SPEC's number, the second is the NNth ticket under that SPEC. `NN` starts at `01`, increments **only within the same spec-seq**, is never reused, and the first ticket also carries an `NN`. SPEC uses the plain `{spec-seq}`; tickets no longer occupy a plain number and must state `Corresponding SPEC: {seq}` explicitly. Tickets with no parent SPEC keep the global `{spec-seq}-ticket-{slug}-…` form (no `.`). Only forward-looking: historical `-NN` names are kept and are explicitly **not** equivalent to the new `.NN` form. Mirrors the upstream `dmt` `5.19.8` change.
+  ② **Version**: `bump-version.sh 5.18.10 --date 2026-11-10` refreshed `dmt_contract.yaml` and the seven `SKILL.md`; the `team.md` header and this changelog pointer were updated **by hand**, because `bump-version.sh` matches the Chinese `版本` prefix and does not match the English `Version` header. `check-dmt.sh` ALL_PASS.
+  **Note**: this is a mirror-side, naming-rule-only sync. **Structural parity with upstream still stands at `5.18.9`** — upstream `dmt` has since renamed `dmt-director`→`dmt-dir`, `dmt-devl`→`dmt-dl`, dropped `dmt-reviewer`, and is at `5.19.8`. The version here is this mirror's own sequence, not a claim of full upstream parity.
 
 - **2026-11-06（sync `dmt-en` to upstream `5.18.8` — full English parity）**：
   the mirror was brought from `5.7.1` (4 skills) to `5.18.8` (7 skills) in one migration.
