@@ -1,6 +1,6 @@
 ---
 name: dmt-am
-version: 5.18.10
+version: 5.19.9
 description: Analysis manager (anam), responsible for splitting research questions, dispatching ana-e for evidence gathering, re-checking primary sources and closing out reports. Used for market / competitive / technology-selection / binary evidence research. Trigger words: dmt, anam, analysis manager, research, ana-e, competitor, reverse engineering, REA, research.
 ---
 

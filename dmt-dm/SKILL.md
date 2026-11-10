@@ -1,6 +1,6 @@
 ---
 name: dmt-dm
-version: 5.18.10
+version: 5.19.9
 description: Development manager (devm), responsible for scheduling development tickets, worktrees, implementation, the code gate, independent acceptance, and merge/push. Used for taking tickets and starting work, dispatching dev-e, organizing reviewers, integrating delivery and hardware device write operations. Trigger words: dmt, devm, development manager, ticket, worktree, acceptance, merge, push, dev-e, reviewer.
 ---
 

@@ -1,9 +1,14 @@
 # dmt team contract · changelog (English mirror)
 
-> **Version `5.18.10` · 2026-11-10** — same number as the `version:` field in the seven role `SKILL.md` files.
+> **Version `5.19.9` · 2026-11-10** — same number as the `version:` field in the seven role `SKILL.md` files.
 > This file records only the **English-mirror history**; the full, item-by-item history (87 entries, Chinese) lives in the
 > upstream [`dmt`](https://github.com/aragornpangit/dmt) repository under `dmt-director/CHANGELOG.md`, and its semantic digest in
 > `CHANGELOG-DIGEST.md`. Entries are facts as of their date and are never rewritten or renumbered.
+
+- **2026-11-10（version alignment · `5.19.9`）**：
+  ① **Version**: aligned this mirror's version with upstream `dmt` at `5.19.9`. `bump-version.sh 5.19.9 --date 2026-11-10` refreshed `dmt_contract.yaml` and the seven `SKILL.md`; the `team.md` header, this changelog pointer, the `README.md` "Current version" line and the `maintenance_only` version assertion in `dmt_contract.yaml` were updated **by hand** (the bump script matches the Chinese `版本` prefix, not the English `Version` header). `check-dmt.sh` ALL_PASS.
+  ② **Correction to the previous entry**: the `5.18.10` note said "the version here is this mirror's own sequence, not a claim of full upstream parity". **That wording no longer holds** — from this entry on the version number tracks upstream. It is still **not** a claim of structural parity: this mirror remains at 7 skills with `dmt-director` / `dmt-reviewer`, while upstream is at `dmt-dir` / `dmt-dl` with no `dmt-reviewer`. The default two-level dev line was already present here (`team/01-org.md`: "the team-lead layer has been removed"), so `5.19.9` required no structural change. The original `5.18.10` entry is kept verbatim as history.
+  ③ **Why**: user requested the Chinese and English repos carry the same version number for this batch; the number is an alignment marker, not a content-equivalence claim.
 
 - **2026-11-10（naming rule sync · version `5.18.10`）**：
   ① **Rule**: `dmt-director/team/04-naming.md` §2 now defines the ticket number as the two-level composite **`{spec-seq}.{NN}`** — `.` is a hierarchy separator (not a decimal point, not a version number), the first part is the owning SPEC's number, the second is the NNth ticket under that SPEC. `NN` starts at `01`, increments **only within the same spec-seq**, is never reused, and the first ticket also carries an `NN`. SPEC uses the plain `{spec-seq}`; tickets no longer occupy a plain number and must state `Corresponding SPEC: {seq}` explicitly. Tickets with no parent SPEC keep the global `{spec-seq}-ticket-{slug}-…` form (no `.`). Only forward-looking: historical `-NN` names are kept and are explicitly **not** equivalent to the new `.NN` form. Mirrors the upstream `dmt` `5.19.8` change.
